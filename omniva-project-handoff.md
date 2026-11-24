@@ -55,7 +55,7 @@ The pasted instructions may have been written earlier, or in another tool (the u
 
 ### 1.3 Exact stopping point
 - Session 2 (24 Nov 2026) completed Area 2 (Journeys), Area 3 (MVP) and the whole of **System Design** (framing, D1–D9, ADRs 0001–0019, `GLOSSARY.md`, `omniva-system-design.html`). All work is committed and pushed to `https://github.com/Mohaned178/Omniva` (branch `main`).
-- **Next stage: Development Planning**, only when the user says so. First step: the user runs `/setup-matt-pocock-skills` (GitHub Issues is now possible since the repo exists), then specs (`/to-spec`) and tracer-bullet tickets (`/to-tickets`), then implementation.
+- **Next stage: Development Planning**, only when the user says so. `/setup-matt-pocock-skills` is **done** (24 Nov 2026): GitHub Issues on Mohaned178/Omniva, default triage labels created, single-context domain docs, `AGENTS.md` + `docs/agents/`. Next: specs (`/to-spec`) and tracer-bullet tickets (`/to-tickets`), then implementation.
 - Parallel, any time: validation steps 1–2 (problem interviews, landing page) per M7.2.
 - Still worth a short user review: bulk-approved J3.4–J6 items (G10 shared costs, G12 several Owners, G13 leaving with copies, G16 auto-roll, wording).
 
