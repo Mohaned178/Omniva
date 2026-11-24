@@ -121,6 +121,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <li><a class="sub" href="#d1">D1 Domain model</a></li>
     <li><a class="sub" href="#d2">D2 Architecture</a></li>
     <li><a class="sub" href="#d3">D3 Identity &amp; access</a></li>
+    <li><a class="sub" href="#d4">D4 Data modelling</a></li>
     <li class="navlabel">Records</li>
     <li><a href="#log">Decision log</a></li>
   </ol>
@@ -155,8 +156,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <tr><td>D1</td><td><b>Domain model &amp; glossary</b></td><td>Blocks, types, anatomy, relationships, workspace, ownership</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D2</td><td><b>Architecture shape &amp; boundaries</b></td><td>Overall structure, module boundaries</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D3</td><td><b>Tenancy, identity &amp; access</b></td><td>Workspace isolation, auth, permissions, moving items</td><td><span class="badge b-ok">Approved</span></td></tr>
-    <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-pend">In discussion</span></td></tr>
-    <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-ok">Approved</span></td></tr>
+    <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-pend">In discussion</span></td></tr>
     <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-idle">Not started</span></td></tr>
@@ -229,10 +230,28 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </section>
 
+<section class="area" id="d4">
+  <div class="areahead"><div class="eyebrow">D4</div><h2>Data modelling</h2><span class="badge b-ok">Approved</span></div>
+  <div class="approved">
+    <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Fields:</b> anatomy and block structure in fixed columns; Type-specific and custom fields in a flexible structured field validated against the Type definition (<a href="docs/adr/0011-hybrid-record-storage.md">ADR 0011</a>).</li>
+      <li><b>Type definitions:</b> built-in Types in code within their life-module pack, versioned with releases; custom types as workspace data; one definition shape (fields, key-date fields, default reminders, home module).</li>
+      <li><b>Key dates</b> in one dedicated collection (record, kind, date, precision, missing), maintained by Records core; reminders, calendar and Overview read only from it.</li>
+      <li><b>Recurrence:</b> iCalendar RRULE plus next occurrence; occurrences generated for a rolling window of about 13 months; date-only key dates have no time zone, timed Events keep theirs.</li>
+      <li><b>Money:</b> integer minor units plus currency code; conversions record rate, date and source and are marked approximate.</li>
+      <li><b>Links:</b> one collection (from, to, relationship, workspace); same-workspace rule enforced by the data; two-way by reading both directions.</li>
+      <li><b>History:</b> a record's history is the Activity Timeline filtered to it (before/after); entries refer to records rather than copying content; content is purged on deletion.</li>
+      <li><b>Identifiers:</b> random, non-guessable IDs everywhere, stable across workspace moves.</li>
+    </ul>
+  </div>
+</section>
+
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D4 Data modelling</td><td>Hybrid field storage (ADR 0011); built-in Types in code, custom as data; one key-date collection; RRULE with 13-month window; integer money with recorded conversion rates; one link collection with same-workspace rule in the data; history by reference, purged on delete; random IDs.</td></tr>
     <tr><td>24 Nov 2026</td><td>D3 round 2</td><td>Public pages (home, features, how it works, pricing, privacy, FAQ, screenshots and videos) without an account; using the app requires sign-up or sign-in. No demo, no guest mode. D3 complete.</td></tr>
     <tr><td>24 Nov 2026</td><td>D3 round 1</td><td>Two-layer workspace isolation (ADR 0009); permission checks from day one; email and password with optional authenticator codes and passkeys, no social sign-in; recovery with 72-hour wait for lost second factor; device sessions and re-authentication; atomic record moves (seam); no routine staff access (ADR 0010). User added: public pages before sign-in (form pending).</td></tr>
     <tr><td>24 Nov 2026</td><td>D2 Architecture</td><td>Modular monolith plus worker (ADR 0006); capability modules; life modules as type packs (ADR 0007); records as source of truth with derived, rebuildable data and durable change notifications (ADR 0008).</td></tr>
