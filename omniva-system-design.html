@@ -162,8 +162,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-ok">Approved</span></td></tr>
-    <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-pend">In discussion</span></td></tr>
-    <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-ok">Approved</span></td></tr>
+    <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-pend">In discussion</span></td></tr>
     <tr><td>D9</td><td><b>API &amp; clients</b></td><td>Web app now, mobile later, versioning</td><td><span class="badge b-idle">Not started</span></td></tr>
   </table></div>
 </section>
@@ -287,7 +287,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </section>
 
 <section class="area" id="d7">
-  <div class="areahead"><div class="eyebrow">D7</div><h2>Technology stack &amp; infrastructure</h2><span class="badge b-pend">In discussion</span></div>
+  <div class="areahead"><div class="eyebrow">D7</div><h2>Technology stack &amp; infrastructure</h2><span class="badge b-ok">Approved</span></div>
   <div class="approved">
     <div class="tag">Approved · Round 1 · 24 Nov 2026</div>
     <ul style="margin-top:8px">
@@ -308,9 +308,13 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <li><b>Prisma consequences:</b> row-level isolation policies in hand-written SQL migrations; each request's transaction carries the workspace through a Prisma client extension; full-text search through raw SQL.</li>
     </ul>
   </div>
-  <div class="proposed" style="margin-top:12px">
-    <div class="tag">Next · Round 3</div>
-    <p>Research EU providers (database, hosting with an always-on worker, file storage, email sending and receiving, key management, malware scanning): free tiers for development, costs for the beta.</p>
+  <div class="approved" style="margin-top:12px">
+    <div class="tag">Approved · Round 3 · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Development:</b> local Docker (PostgreSQL, MinIO, Mailpit); staging on free tiers with no real data. $0.</li>
+      <li><b>Beta providers</b> (<a href="docs/adr/0017-hosting-providers.md">ADR 0017</a>): Neon PostgreSQL, Frankfurt, 14-day history · Render, Frankfurt (web, API, worker) · Cloudflare R2, EU jurisdiction · Mailgun EU for sending and receiving (Lettermint fallback) · AWS KMS, Frankfurt, one master key plus per-workspace data keys · ClamAV in the worker · Sentry EU and a free uptime monitor alerting on outages and failed reminder reconciliation.</li>
+      <li><b>Estimated beta cost:</b> about $55–80/month plus a domain; prices to be confirmed at account setup.</li>
+    </ul>
   </div>
 </section>
 
@@ -318,6 +322,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D7 round 3</td><td>Local Docker and free staging; Neon Frankfurt (14-day history), Render Frankfurt, R2 EU, Mailgun EU, AWS KMS Frankfurt, ClamAV in worker, Sentry EU (ADR 0017). Beta about $55–80/month. D7 complete.</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 2</td><td>Free until beta, small paid budget from beta. NestJS, Next.js, pnpm monorepo, Prisma (user choice), Zod, pg-boss, Better Auth (ADR 0016).</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 1</td><td>Builder: mostly AI agents. TypeScript and NestJS preferred. Budget $0–1/month (conflict raised). PostgreSQL only (ADR 0014); jobs queued in PostgreSQL (ADR 0015); managed EU services; no proprietary BaaS.</td></tr>
     <tr><td>24 Nov 2026</td><td>D6 Security &amp; privacy</td><td>Per-workspace keys and crypto-shredding (ADR 0013); 14-day backups with monthly restore tests; deletion timeline; EU hosting and GDPR baseline; content-free first-party measurement, no trackers; content-free logs; rate limits; secrets store, scanning, review before beta, pen test before launch; Vault seam.</td></tr>
