@@ -12,6 +12,22 @@ _Avoid_: Item (an Item is one building block), entry, object
 A specific kind of record built on a building block, such as "Car" on Item or "Passport" on Identity document. Built in or created by the user. A record's Type decides its home module.
 _Avoid_: Category, class, kind
 
+**Archived**:
+A record the user has put away: hidden from the Overview, still searchable, with its links and history kept. Any record can be archived.
+_Avoid_: Deleted, hidden, inactive
+
+**Lifecycle state**:
+Where a record stands in its own life, specific to its building block: an Item is owned or disposed; an Obligation is active, ending or ended; a Document is valid or expired; a Task is open or done; a Plan is upcoming, in progress or past.
+_Avoid_: Status (too vague), stage
+
+**Disposed**:
+The lifecycle state of an Item that is no longer owned: sold, given away or discarded.
+_Avoid_: Deleted, removed, archived
+
+**Ending**:
+The lifecycle state of an Obligation whose cancellation is pending until the user confirms it has really ended.
+_Avoid_: Cancelled, closing
+
 **Template**:
 A preset for creating records of a Type, with default key dates and reminders.
 _Avoid_: Blueprint, form
@@ -59,7 +75,7 @@ _Avoid_: Owner, bearer
 _Avoid_: ID item, travel document
 
 **Money record**:
-A single amount of money connected to something in life, such as a purchase cost or a repair bill. Either projected or recorded; Omniva never marks money as paid.
+A single amount of money connected to something in life, such as a purchase cost or a repair bill. It keeps its own currency. Either projected or recorded; Omniva never marks money as paid.
 _Avoid_: Transaction, expense, payment
 
 **Projected money record**:
@@ -71,7 +87,7 @@ A Money record the user entered or confirmed.
 _Avoid_: Actual, paid, settled
 
 **Obligation**:
-An ongoing commitment that repeats or renews, such as a subscription, insurance policy, rent or loan. Shown to users as "Recurring".
+An ongoing commitment that repeats or renews, such as a subscription, insurance policy, rent or loan. It has a cycle and a next renewal date. Shown to users as "Recurring".
 _Avoid_: Bill, subscription (a subscription is one kind of Obligation), contract
 
 **Event**:
@@ -122,6 +138,14 @@ _Avoid_: Suggested link, smart link, derived link
 A meaningful date on any record, such as an expiry, renewal or due date. Key dates feed the calendar and reminders. Shown to users as "Important dates".
 _Avoid_: Deadline, due date (one kind of key date)
 
+**Month-only date**:
+A key date known only to the month ("March 2027"). It reminds early enough to be safe and invites confirming the exact day.
+_Avoid_: Approximate date, fuzzy date
+
+**Date missing**:
+The state of a key date the user doesn't know yet, surfaced gently until it is filled in.
+_Avoid_: Unknown date, empty date
+
 **Reminder**:
 A notice attached to a key date (an Event's start counts as a key date). Reminders are not records of their own.
 _Avoid_: Alert, notification (the delivery, not the reminder)
@@ -131,8 +155,12 @@ The periodic summary that gathers what is coming up, decisions to make and items
 _Avoid_: Newsletter, report
 
 **Inbox**:
-Where captured things wait until they are organized.
+Where captures wait until they are sorted.
 _Avoid_: Drafts, unsorted
+
+**Capture**:
+Raw input (a file, a forwarded email, some text) waiting in the Inbox. A capture is searchable but is not a record: it creates no reminders, calendar entries or totals until sorted into a record.
+_Avoid_: Draft record, unsorted item, inbox item
 
 ## History and trust
 
@@ -161,6 +189,10 @@ _Avoid_: Account, customer, member
 **Member**:
 A user's participation in a workspace, with a role (Owner, Editor or Viewer). In each workspace, a member is represented by a Person record connected to their User.
 _Avoid_: Participant, collaborator, user
+
+**Main currency**:
+The currency a workspace's totals are shown in; amounts in other currencies are converted and marked approximate.
+_Avoid_: Base currency, default currency
 
 **Account**:
 Only a financial account, such as a bank account (a Type of Item). Never a user's login.

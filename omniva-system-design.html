@@ -150,8 +150,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <p class="lede">Ordered by dependency. Technology (D7) is chosen to fit the design, not the reverse.</p>
   <div class="tablewrap"><table>
     <tr><th>#</th><th>Topic</th><th>Covers</th><th>Status</th></tr>
-    <tr><td>D1</td><td><b>Domain model &amp; glossary</b></td><td>Blocks, types, anatomy, relationships, workspace, ownership</td><td><span class="badge b-pend">In discussion</span></td></tr>
-    <tr><td>D2</td><td><b>Architecture shape &amp; boundaries</b></td><td>Overall structure, module boundaries</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D1</td><td><b>Domain model &amp; glossary</b></td><td>Blocks, types, anatomy, relationships, workspace, ownership</td><td><span class="badge b-ok">Approved</span></td></tr>
+    <tr><td>D2</td><td><b>Architecture shape &amp; boundaries</b></td><td>Overall structure, module boundaries</td><td><span class="badge b-pend">In discussion</span></td></tr>
     <tr><td>D3</td><td><b>Tenancy, identity &amp; access</b></td><td>Workspace isolation, auth, permissions, moving items</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-idle">Not started</span></td></tr>
@@ -163,7 +163,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </section>
 
 <section class="area" id="d1">
-  <div class="areahead"><div class="eyebrow">D1</div><h2>Domain model &amp; glossary</h2><span class="badge b-pend">In discussion</span></div>
+  <div class="areahead"><div class="eyebrow">D1</div><h2>Domain model &amp; glossary</h2><span class="badge b-ok">Approved</span></div>
   <p class="lede">The language every specification and line of code will use. Source of truth: <code>GLOSSARY.md</code>.</p>
   <div class="approved">
     <div class="tag">Approved · Round 1 · 24 Nov 2026 · Claude's recommendations accepted</div>
@@ -181,12 +181,24 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <tr><td>10</td><td>Plan Types have home modules (Trip → Travel; Move, Renovation → Home; generic Plan → Productivity)</td><td>—</td></tr>
     </table></div>
   </div>
+  <div class="approved" style="margin-top:12px">
+    <div class="tag">Approved · Round 2 · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Archived</b> (universal) is separate from a block-specific <b>lifecycle state</b>: Item owned → disposed; Obligation active → ending → ended; Document valid → expired; Task open → done; Plan upcoming → in progress → past.</li>
+      <li><b>Archive</b> keeps everything; <b>delete</b> is real deletion, shows links first, never cascades silently, and leaves only "a record was deleted" in the timeline (<a href="docs/adr/0004-deletion-leaves-no-content-in-history.md">ADR 0004</a>).</li>
+      <li><b>Recurrence:</b> Obligations (cycle and next renewal), Tasks and Events only.</li>
+      <li><b>Currency:</b> each Money record keeps its currency; each workspace has a <b>main currency</b>; converted totals are marked approximate and originals kept.</li>
+      <li><b>Key dates</b> may be exact, <b>month only</b> (reminds safely early, invites confirming the day), or <b>date missing</b>.</li>
+      <li><b>Captures</b> in the Inbox are not records: searchable, but no reminders, calendar entries or totals until sorted (<a href="docs/adr/0005-captures-are-not-records.md">ADR 0005</a>).</li>
+    </ul>
+  </div>
 </section>
 
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D1 round 2</td><td>Archived vs lifecycle state; real deletion leaves no content (ADR 0004); recurrence for Obligations, Tasks, Events; per-record currency and workspace main currency; month-only and missing dates; Captures are not records (ADR 0005). D1 complete.</td></tr>
     <tr><td>24 Nov 2026</td><td>D1 round 1</td><td>Record vs Item; User, Member, Account; a Person per member per workspace; workspace ownership; Block → Type → Template; Event start as key date; projected vs recorded money, no paid state; Link vs Inferred connection; Holder; Plan home modules. ADRs 0001–0003.</td></tr>
     <tr><td>24 Nov 2026</td><td>Framing</td><td>MVP in detail, long-term as seams. GLOSSARY.md + docs/adr/ + this index. Git initialised, GitHub remote set. Default constraints: low cost, mainstream cloud, EU-friendly residency. Topic order D1–D9.</td></tr>
   </table></div>
