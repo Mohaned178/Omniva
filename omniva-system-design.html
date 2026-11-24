@@ -124,6 +124,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <li><a class="sub" href="#d4">D4 Data modelling</a></li>
     <li><a class="sub" href="#d5">D5 Platform services</a></li>
     <li><a class="sub" href="#d6">D6 Security &amp; privacy</a></li>
+    <li><a class="sub" href="#d7">D7 Stack</a></li>
     <li class="navlabel">Records</li>
     <li><a href="#log">Decision log</a></li>
   </ol>
@@ -145,7 +146,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <li><b>Method:</b> topics one at a time using the <code>domain-modeling</code> and <code>grilling</code> disciplines. <code>wayfinder</code> stays optional (user-invoked, needs an issue tracker).</li>
       <li><b>Version control:</b> <code>F:\Omniva</code> is a git repository; remote <code>github.com/Mohaned178/Omniva</code>.</li>
       <li><b>Constraints (default until the user says otherwise):</b> low running cost, a mainstream cloud host, EU-friendly data residency.</li>
-      <li><b>Pending:</b> who builds it and which languages or frameworks they know (asked again before D7).</li>
+      <li><b>Builder and languages</b> (answered in D7): mostly AI agents; TypeScript, NestJS.</li>
     </ul>
   </div>
 </section>
@@ -285,10 +286,27 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </section>
 
+<section class="area" id="d7">
+  <div class="areahead"><div class="eyebrow">D7</div><h2>Technology stack &amp; infrastructure</h2><span class="badge b-pend">In discussion</span></div>
+  <div class="approved">
+    <div class="tag">Approved · Round 1 · 24 Nov 2026</div>
+    <ul style="margin-top:8px">
+      <li><b>Builder:</b> mostly AI coding agents, with the user reviewing.</li>
+      <li><b>Language preference:</b> TypeScript; NestJS preferred by the user.</li>
+      <li><b>Budget (user):</b> $0–1 per month. Conflicts with some approved reliability decisions; resolved in round 2.</li>
+      <li><b>Database:</b> PostgreSQL only (<a href="docs/adr/0014-postgresql.md">ADR 0014</a>).</li>
+      <li><b>Background jobs</b> queued in PostgreSQL itself (<a href="docs/adr/0015-jobs-queued-in-postgresql.md">ADR 0015</a>).</li>
+      <li><b>Managed services</b> over self-run servers, in the EU region.</li>
+      <li><b>No proprietary backend-as-a-service</b> for core data or logic.</li>
+    </ul>
+  </div>
+</section>
+
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D7 round 1</td><td>Builder: mostly AI agents. TypeScript and NestJS preferred. Budget $0–1/month (conflict raised). PostgreSQL only (ADR 0014); jobs queued in PostgreSQL (ADR 0015); managed EU services; no proprietary BaaS.</td></tr>
     <tr><td>24 Nov 2026</td><td>D6 Security &amp; privacy</td><td>Per-workspace keys and crypto-shredding (ADR 0013); 14-day backups with monthly restore tests; deletion timeline; EU hosting and GDPR baseline; content-free first-party measurement, no trackers; content-free logs; rate limits; secrets store, scanning, review before beta, pen test before launch; Vault seam.</td></tr>
     <tr><td>24 Nov 2026</td><td>D5 Platform services</td><td>Reminder guarantees (ADR 0012); tracked delivery and local-time digest; verified-sender email forwarding; separate encrypted file storage with scanning; built-in full-text search incl. linked titles; undoable batch import; calendar feed off by default with minimal titles; full ZIP export; deterministic, undoable automation.</td></tr>
     <tr><td>24 Nov 2026</td><td>D4 Data modelling</td><td>Hybrid field storage (ADR 0011); built-in Types in code, custom as data; one key-date collection; RRULE with 13-month window; integer money with recorded conversion rates; one link collection with same-workspace rule in the data; history by reference, purged on delete; random IDs.</td></tr>
