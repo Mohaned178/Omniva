@@ -300,12 +300,25 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <li><b>No proprietary backend-as-a-service</b> for core data or logic.</li>
     </ul>
   </div>
+  <div class="approved" style="margin-top:12px">
+    <div class="tag">Approved · Round 2 · 24 Nov 2026</div>
+    <ul style="margin-top:8px">
+      <li><b>Budget:</b> $0–1/month during development (local, plus free tiers for a staging copy with no real data); a small paid budget (roughly $30–60/month, to be confirmed by provider research) from the beta, when real users' data arrives.</li>
+      <li><b>Stack</b> (<a href="docs/adr/0016-typescript-stack.md">ADR 0016</a>): NestJS (API and worker) · Next.js / React (public pages and app) · one pnpm-workspaces repository (<code>apps/web</code>, <code>apps/api</code>, shared <code>packages/</code>) · <b>Prisma</b> (user's choice over Drizzle) · shared Zod schemas · pg-boss · Better Auth.</li>
+      <li><b>Prisma consequences:</b> row-level isolation policies in hand-written SQL migrations; each request's transaction carries the workspace through a Prisma client extension; full-text search through raw SQL.</li>
+    </ul>
+  </div>
+  <div class="proposed" style="margin-top:12px">
+    <div class="tag">Next · Round 3</div>
+    <p>Research EU providers (database, hosting with an always-on worker, file storage, email sending and receiving, key management, malware scanning): free tiers for development, costs for the beta.</p>
+  </div>
 </section>
 
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D7 round 2</td><td>Free until beta, small paid budget from beta. NestJS, Next.js, pnpm monorepo, Prisma (user choice), Zod, pg-boss, Better Auth (ADR 0016).</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 1</td><td>Builder: mostly AI agents. TypeScript and NestJS preferred. Budget $0–1/month (conflict raised). PostgreSQL only (ADR 0014); jobs queued in PostgreSQL (ADR 0015); managed EU services; no proprietary BaaS.</td></tr>
     <tr><td>24 Nov 2026</td><td>D6 Security &amp; privacy</td><td>Per-workspace keys and crypto-shredding (ADR 0013); 14-day backups with monthly restore tests; deletion timeline; EU hosting and GDPR baseline; content-free first-party measurement, no trackers; content-free logs; rate limits; secrets store, scanning, review before beta, pen test before launch; Vault seam.</td></tr>
     <tr><td>24 Nov 2026</td><td>D5 Platform services</td><td>Reminder guarantees (ADR 0012); tracked delivery and local-time digest; verified-sender email forwarding; separate encrypted file storage with scanning; built-in full-text search incl. linked titles; undoable batch import; calendar feed off by default with minimal titles; full ZIP export; deterministic, undoable automation.</td></tr>
