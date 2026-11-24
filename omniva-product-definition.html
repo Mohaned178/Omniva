@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omniva Product Definition</title>
+<style>
+/* Layout: fixed sidebar navigation + single content column; collapses to top nav on small screens */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#eef1f5; --fg:#16202c; --muted:#5a6676; --line:#dce1e8;
+  --accent:#2f5bd3; --accent-soft:#e6ecfb;
+  --ok:#1e7a4c; --ok-bg:#e2f3ea; --pend:#9a6300; --pend-bg:#fbefd4; --idle:#6b7684; --idle-bg:#eceff3;
+  --own:#2f5bd3; --own-bg:#e6ecfb; --con:#7a4fc4; --con-bg:#efe8fa; --out:#a33b3b; --out-bg:#f8e5e5;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#10151c; --surface:#171e27; --surface-2:#1e2732; --fg:#e5eaf0; --muted:#9aa6b4; --line:#2a3541;
+  --accent:#7ea2ff; --accent-soft:#1d2a47;
+  --ok:#6fd3a0; --ok-bg:#173326; --pend:#e8bd60; --pend-bg:#3a2d12; --idle:#8b96a3; --idle-bg:#232c37;
+  --own:#7ea2ff; --own-bg:#1d2a47; --con:#b99af0; --con-bg:#2a2140; --out:#ef8f8f; --out-bg:#3a1e1e;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55}
+a{color:var(--accent)}
+.app{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
+nav.side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:22px 16px}
+.brand{font-weight:700;font-size:18px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+nav.side ol{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+nav.side a{display:block;padding:6px 10px;border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+nav.side a.sub{padding-left:24px;color:var(--muted);font-size:13px}
+nav.side a:hover,nav.side a.active{background:var(--accent-soft);color:var(--accent)}
+nav.side .navlabel{margin:14px 10px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+main{padding:32px max(20px,4vw) 80px;max-width:1100px;width:100%}
+h1,h2,h3,h4{text-wrap:balance;letter-spacing:-.01em;margin:0}
+h1{font-size:30px} h2{font-size:23px} h3{font-size:17px} h4{font-size:15px}
+.lede{color:var(--muted);max-width:72ch;margin:8px 0 0}
+section.area{margin-top:44px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:20px}
+.areahead{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.b-ok{background:var(--ok-bg);color:var(--ok)} .b-pend{background:var(--pend-bg);color:var(--pend)} .b-idle{background:var(--idle-bg);color:var(--idle)}
+.b-own{background:var(--own-bg);color:var(--own)} .b-con{background:var(--con-bg);color:var(--con)} .b-out{background:var(--out-bg);color:var(--out)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:18px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:13px}
+details.block{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.block>summary{cursor:pointer;list-style:none;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600}
+details.block>summary::-webkit-details-marker{display:none}
+details.block>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+details.block[open]>summary::before{transform:rotate(90deg)}
+details.block>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+.body{padding:0 18px 18px;display:flex;flex-direction:column;gap:12px}
+.body p{margin:0;max-width:75ch}
+.body ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.proposed{border:1px dashed var(--pend);border-radius:10px;padding:14px 16px;background:var(--pend-bg)}
+.proposed .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--pend)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h4{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.zone{display:flex;flex-direction:column;gap:3px;font-size:13px}
+.zone .badge{align-self:flex-start}
+.zone p{margin:0;color:var(--muted)}
+/* Layer diagram */
+.layers{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px}
+.stack{display:flex;flex-direction:column;gap:8px}
+.layer{border-radius:10px;padding:10px 12px;border:1px solid var(--line);background:var(--surface-2)}
+.layer .lname{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:3px 9px;border-radius:6px;background:var(--surface);border:1px solid var(--line)}
+.chip.pending{border-style:dashed;border-color:var(--pend);color:var(--pend);background:var(--pend-bg)}
+.approved{border:1px solid var(--ok);border-radius:10px;padding:14px 16px;background:var(--ok-bg)}
+.approved .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ok)}
+.approved p,.proposed p{color:var(--fg)}
+.matrix{width:auto;font-size:12.5px}
+.matrix td,.matrix th{border:1px solid var(--line);text-align:center;padding:4px 6px;min-width:30px}
+.matrix th{text-transform:none;letter-spacing:0;color:var(--fg);font-weight:600;white-space:nowrap}
+.matrix th.rot{height:110px;vertical-align:bottom;padding:4px 2px}
+.matrix th.rot span{writing-mode:vertical-rl;transform:rotate(180deg);display:inline-block}
+.matrix td.st{color:var(--accent);font-weight:700;background:var(--accent-soft)}
+.matrix td.so{color:var(--muted)}
+.matrix td.diag{background:var(--surface-2)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.flow .step{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:13px}
+.flow .arr{color:var(--muted)}
+.l4{border-color:var(--accent)} .l4 .lname{color:var(--accent)}
+.integr{border-radius:10px;border:1px dashed var(--con);background:var(--con-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:12.5px;color:var(--con);font-weight:600;gap:6px}
+.integr .arrow{font-size:20px}
+@media (max-width:620px){.layers{grid-template-columns:1fr}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:8px 14px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+@media (max-width:880px){
+  .app{grid-template-columns:1fr}
+  nav.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  nav.side ol{flex-direction:row;flex-wrap:wrap}
+  nav.side a.sub,nav.side .navlabel{display:none}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}details.block>summary::before{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="side" aria-label="Document sections">
+  <div class="brand">Omniva<small>Product Definition &amp; Planning</small></div>
+  <ol>
+    <li><a href="#overview">Overview &amp; status</a></li>
+    <li><a href="#foundation">Approved foundation</a></li>
+    <li class="navlabel">Area 1</li>
+    <li><a href="#scope">Product Scope</a></li>
+    <li><a class="sub" href="#s1">S1 Platform structure</a></li>
+    <li><a class="sub" href="#s2">S2 Core building blocks</a></li>
+    <li><a class="sub" href="#s3">S3 Shared capabilities</a></li>
+    <li><a class="sub" href="#s4">S4 Module responsibilities</a></li>
+    <li><a class="sub" href="#s5">S5 Relationships</a></li>
+    <li><a class="sub" href="#s6">S6 Integrations</a></li>
+    <li><a class="sub" href="#s7">S7 Dependencies</a></li>
+    <li><a class="sub" href="#s8">S8 Long-term vs future</a></li>
+    <li><a class="sub" href="#modules">Module boundaries</a></li>
+    <li class="navlabel">Area 2</li>
+    <li><a href="#journeys">User Journeys</a></li>
+    <li><a class="sub" href="#j1">J1 Framework &amp; personas</a></li>
+    <li><a class="sub" href="#j2">J2 Foundational</a></li>
+    <li><a class="sub" href="#j3">J3 Signature journeys</a></li>
+    <li><a class="sub" href="#j4">J4 Shared workspaces</a></li>
+    <li><a class="sub" href="#j5">J5 Edge cases</a></li>
+    <li><a class="sub" href="#j6">J6 Scope gaps</a></li>
+    <li class="navlabel">Area 3</li>
+    <li><a href="#mvp">MVP Definition</a></li>
+    <li><a class="sub" href="#m1">M1 Users &amp; problem</a></li>
+    <li><a class="sub" href="#m2">M2 Essential journeys</a></li>
+    <li><a class="sub" href="#m3">M3 Modules &amp; depth</a></li>
+    <li><a class="sub" href="#m4">M4 Foundational capabilities</a></li>
+    <li><a class="sub" href="#m5">M5 Required connections</a></li>
+    <li><a class="sub" href="#m6">M6 Postponed &amp; excluded</a></li>
+    <li><a class="sub" href="#m7">M7 Assumptions</a></li>
+    <li><a class="sub" href="#m8">M8 Success criteria</a></li>
+    <li class="navlabel">Records</li>
+    <li><a href="#log">Decision log</a></li>
+    <li><a href="#open">Open items</a></li>
+  </ol>
+</nav>
+
+<main>
+<header id="overview">
+  <div class="eyebrow">Living document · last updated 24 Nov 2026</div>
+  <h1>Omniva Product Definition</h1>
+  <p class="lede">The product definition for Omniva, a Personal Life Management Platform. It is built in three areas, each on top of the last: Product Scope, then User Journeys &amp; Use Cases, then MVP Definition. Approved decisions and pending proposals are labelled separately, and nothing pending should be read as final.</p>
+  <div class="summary" id="stats"></div>
+  <div class="legend" style="margin-top:14px">
+    <span class="badge b-ok">Approved</span>
+    <span class="badge b-pend">In discussion</span>
+    <span class="badge b-idle">Not started</span>
+    <span>·</span>
+    <span class="badge b-own">Own</span><span class="badge b-con">Connect</span><span class="badge b-out">Out of scope</span>
+  </div>
+  <div class="toolbar" style="margin-top:14px">
+    <button type="button" id="expandAll">Expand all</button>
+    <button type="button" id="collapseAll">Collapse all</button>
+  </div>
+</header>
+
+<section class="area" id="foundation">
+  <div class="areahead"><div class="eyebrow">Authoritative input</div><h2>Approved foundation from Product Vision</h2><span class="badge b-ok">Approved</span></div>
+  <p class="lede">These decisions were finalized in Product Vision Finalization (Areas 1–7) and are binding for everything below.</p>
+  <details class="block">
+    <summary>Identity, vision and value</summary>
+    <div class="body">
+      <div class="tablewrap"><table>
+        <tr><th>Item</th><th>Decision</th></tr>
+        <tr><td>Category</td><td>Personal Life Management Platform. Public description: "A connected platform for managing your personal life".</td></tr>
+        <tr><td>Tagline</td><td>Your Life, All in One Place. Supporting line: Your Life, Connected.</td></tr>
+        <tr><td>Structure</td><td>Structured core, flexible edges (custom fields, tags, custom item types).</td></tr>
+        <tr><td>Approach</td><td>Hybrid: Omniva is the primary environment, and it integrates with specialists where appropriate.</td></tr>
+        <tr><td>Vision</td><td>A world where people feel informed, prepared, and in control of the important aspects of their lives, with the clarity and confidence to make better decisions and focus on what truly matters.</td></tr>
+        <tr><td>Mission</td><td>Omniva brings together and connects the different aspects of personal life, helping people organize their information, understand their circumstances, manage their responsibilities, and stay ahead of what matters through one private and intelligent platform.</td></tr>
+        <tr><td>Value headline</td><td>Your whole life, connected, so you always know where things stand and what's coming next.</td></tr>
+        <tr><td>Value pillars</td><td>See · Connect · Anticipate · Control</td></tr>
+        <tr><td>Intelligence</td><td>Organizer growing into a partner. Useful without AI. AI assists, the user decides.</td></tr>
+      </table></div>
+    </div>
+  </details>
+  <details class="block">
+    <summary>Audience</summary>
+    <div class="body"><ul>
+      <li><b>Broad audience:</b> individuals. <b>Primary profile:</b> people with complex lives (many areas to manage). <b>Early adopters:</b> self-organizers.</li>
+      <li><b>Entry-segment shortlist (to validate):</b> self-organizers, people in major life transitions (expats as a sub-group), young couples building a shared life.</li>
+      <li><b>Participants:</b> shared workspace members, and managed profiles (long-term). These are two separate concepts.</li>
+      <li><b>Geography:</b> global product, regional entry. Arabic and English, with RTL/LTR designed in from the start.</li>
+    </ul></div>
+  </details>
+  <details class="block">
+    <summary>Principles and conflict order</summary>
+    <div class="body"><ul>
+      <li><b>Your life, your control:</b> private by default, user owns data, explicit and revocable sharing, no data monetization.</li>
+      <li><b>Honest and reliable:</b> transparency, reliable above all.</li>
+      <li><b>Connected by design:</b> never isolated, structured core with flexible edges, integrate rather than replicate.</li>
+      <li><b>Effortless and calm:</b> low effort first, show only what's relevant, proactive but calm.</li>
+      <li><b>Grow with quality:</b> useful without AI, depth before breadth, global and inclusive.</li>
+      <li><b>When principles conflict:</b> trust &amp; control → reliability → low effort &amp; calm → connection → breadth.</li>
+    </ul></div>
+  </details>
+  <details class="block">
+    <summary>Cross-cutting boundaries and long-term stages</summary>
+    <div class="body"><ul>
+      <li>Never moves money. Professional advice is informational only. Omniva prepares first, and delegated actions come later with approval. Users communicate through comments on items only.</li>
+      <li>Moving a capability out of "Out of scope" requires a deliberate, documented decision.</li>
+      <li><b>Stages:</b> 1 Trusted Foundation → 2 Expanded Life (public launch) → 3 Proactive Life → 4 Life Partner. Progression is criteria-based.</li>
+      <li><b>Ecosystem:</b> no public API or plugin marketplace. Export and calendar feeds come early, and user-authorized personal connections come in stage 3.</li>
+    </ul></div>
+  </details>
+</section>
+
+<section class="area" id="scope">
+  <div class="areahead"><div class="eyebrow">Area 1</div><h2>Product Scope</h2><span class="badge b-ok">Approved</span></div>
+  <p class="lede">What Omniva contains and provides in the long term: platform structure, modules, shared capabilities, connections, integrations, dependencies and boundaries.</p>
+  <p class="note"><b>Amended 24 Nov 2026 by J6</b> (scope gaps review): additions and clarifications G1–G19 apply to the sections below. See <a href="#j6">J6</a>. Also clarified during J3.1: the S4 disposal rule.</p>
+  <div class="tablewrap"><table id="t-scope"></table></div>
+
+  <details class="block" id="s1">
+    <summary>S1 · Platform structure <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>How Omniva is organized as a product: what a module is, what is shared across modules, and where the cross-life experiences sit. This is a product structure, not a system architecture.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026</div>
+        <ul style="margin:8px 0 0">
+          <li><b>Structure:</b> Option C, layered hybrid, with four conceptual layers: Foundation, Core Building Blocks, Life Modules (12), Cross-Life Experiences. It must support structured core, flexible edges, and connected by design.</li>
+          <li><b>Items and modules:</b> every item has <b>one canonical home module</b>. Other modules may display or reference it when relevant. One source of truth, never duplicated records. <i>Example: a gym membership lives in Subscriptions &amp; Services, appears in Health &amp; Fitness, and its cost connects to Finance &amp; Wealth.</i></li>
+          <li><b>Custom item types:</b> created inside the module where they belong, with a general fallback area for types that truly fit no module. Custom types always use the shared building blocks, so they stay connected.</li>
+          <li><b>Foundation scope:</b> privacy, identity, permissions and sharing belong to the Foundation. <b>The E2EE Vault is not an approved capability.</b> It stays undecided.</li>
+          <li><b>Resolved later in S3b:</b> Personal Analytics became embedded Insights. Automation became a behind-the-scenes shared capability. The E2EE Vault was approved in long-term scope as optional and limited.</li>
+        </ul>
+      </div>
+      <div>
+        <p class="note" style="margin-bottom:8px">Approved layer structure, with placements resolved in S3b.</p>
+        <div class="layers" role="img" aria-label="Approved four-layer structure with integrations feeding in from the side">
+          <div class="stack">
+            <div class="layer l4"><div class="lname">4 · Cross-life experiences</div><div class="chips">
+              <span class="chip">Life Overview</span><span class="chip">Unified Calendar</span><span class="chip">Universal Search</span><span class="chip">Activity Timeline</span><span class="chip">Insights (embedded)</span><span class="chip">AI Assistant (optional)</span></div></div>
+            <div class="layer"><div class="lname">3 · Life modules (12)</div><div class="chips">
+              <span class="chip">Productivity</span><span class="chip">Finance</span><span class="chip">Health</span><span class="chip">Learning</span><span class="chip">Career</span><span class="chip">Assets</span><span class="chip">Social</span><span class="chip">Travel</span><span class="chip">Home</span><span class="chip">Subscriptions</span><span class="chip">Documents</span><span class="chip">Entertainment</span></div></div>
+            <div class="layer"><div class="lname">2 · Core building blocks</div><div class="chips">
+              <span class="chip">Item</span><span class="chip">Document</span><span class="chip">Money record</span><span class="chip">Obligation</span><span class="chip">Event</span><span class="chip">Task</span><span class="chip">Person</span><span class="chip">Note</span><span class="chip">Plan</span><span class="chip">Measurement</span></div></div>
+            <div class="layer"><div class="lname">1 · Foundation</div><div class="chips">
+              <span class="chip">Account &amp; identity</span><span class="chip">Workspaces</span><span class="chip">Permissions &amp; sharing</span><span class="chip">Privacy</span><span class="chip">E2EE Vault (optional, limited · S3b)</span><span class="chip">Import &amp; export</span><span class="chip">Notifications</span><span class="chip">Automation (behind the scenes · S3b)</span><span class="chip">Security log</span></div></div>
+          </div>
+          <div class="integr"><span>Integrations<br>(Connect zone)</span><span class="arrow" aria-hidden="true">⇠</span><span style="font-weight:400">feed data into modules and building blocks</span></div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s2">
+    <summary>S2 · Core building blocks <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The small set of shared types that every module and custom type is built from. Users mostly never see these names: they see "Car", "Passport" or "Netflix". The building blocks are what make those things connect.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Building block</th><th>What it represents</th><th>Examples</th></tr>
+          <tr><td><b>Item</b></td><td>Something you own, hold or have</td><td>Car, laptop, apartment, bank account</td></tr>
+          <tr><td><b>Document</b></td><td>A file plus what it is about</td><td>Invoice, warranty, contract, ID scan, medical report</td></tr>
+          <tr><td><b>Money record</b></td><td>A one-time amount of money</td><td>Purchase cost, repair bill, refund, deposit</td></tr>
+          <tr><td><b>Obligation</b></td><td>An ongoing commitment that repeats or renews</td><td>Subscription, insurance, rent, loan, membership, licence renewal</td></tr>
+          <tr><td><b>Event</b></td><td>Something that happens at a time</td><td>Appointment, flight, birthday, service visit</td></tr>
+          <tr><td><b>Task</b></td><td>Something to do</td><td>Renew passport, service the car, cancel a trial</td></tr>
+          <tr><td><b>Person</b></td><td>Someone in your life</td><td>Family member, doctor, landlord, mechanic</td></tr>
+          <tr><td><b>Note</b></td><td>Lightweight text linked to anything</td><td>Book notes, relationship notes, repair history notes</td></tr>
+          <tr><td><b>Plan</b></td><td>A time-bound life situation that groups things across modules</td><td>Trip, move, renovation, wedding, new baby</td></tr>
+          <tr><td><b>Measurement</b></td><td>A value recorded over time (long-term set; timing is an MVP question)</td><td>Weight, blood pressure, car mileage, meter reading</td></tr>
+        </table></div>
+        <h4 style="margin-top:14px">Shared anatomy: every block, module type and custom type has</h4>
+        <div class="tablewrap"><table>
+          <tr><th>Property</th><th>Purpose</th></tr>
+          <tr><td>Title &amp; type</td><td>What it is (for example, a "Car" type built on Item)</td></tr>
+          <tr><td>Home module</td><td>Its single canonical home (S1)</td></tr>
+          <tr><td>Workspace &amp; owner</td><td>Who it belongs to and who can see it</td></tr>
+          <tr><td><b>Key dates</b> (universal)</td><td>Any meaningful dates (expiry, renewal, due, purchase), which feed the calendar and reminders</td></tr>
+          <tr><td>Status</td><td>Active, archived, expired, completed</td></tr>
+          <tr><td>Links</td><td>Connections to other blocks (detailed in S5)</td></tr>
+          <tr><td>Attachments</td><td>Linked documents</td></tr>
+          <tr><td>Tags &amp; custom fields</td><td>The flexible edges</td></tr>
+          <tr><td>History</td><td>What changed and when (its relation to the Activity Timeline is decided in S3)</td></tr>
+        </table></div>
+        <ul style="margin-top:12px">
+          <li><b>Tasks vs reminders:</b> Task is a building block. <b>Reminders are a shared capability</b> that attaches to any key date (defined in S3).</li>
+          <li><b>Visibility:</b> building-block names are mostly invisible to users, who see real-world types. Which plain words appear in the interface is decided during the journeys.</li>
+          <li><b>Passport</b> (clarified 24 Nov 2026, J1 session): an Identity document whose home is Documents &amp; Files, with the scan attached. Its expiry is a key date that drives reminders and travel checks. Not an Item.</li>
+          <li><b>Not blocks:</b> places and addresses (an attribute, with properties as Items), goals (a Productivity type), accounts (an Item type).</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s3" open>
+    <summary>S3 · Shared platform capabilities <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>Capabilities that work across all modules. Split into two parts: <b>S3a</b> core experiences (approved) and <b>S3b</b> advanced capabilities (approved).</p>
+      <div class="approved">
+        <div class="tag">Approved · S3a · 24 Nov 2026</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Capability</th><th>Approved definition</th></tr>
+          <tr><td><b>Life Overview</b></td><td>Attention-first home screen: what needs attention (upcoming key dates, overdue tasks, expiring items), then a card for where each active area stands, then recent changes. Light customization: hide or reorder area cards.</td></tr>
+          <tr><td><b>Unified Calendar</b></td><td>Events and key dates from every module and every workspace the user belongs to, within permissions. Key dates appear next to events, visually distinct, filterable by module, workspace and type. External calendar sync is decided in S6.</td></tr>
+          <tr><td><b>Universal Search</b></td><td>One search across all blocks, modules and workspaces, within permissions. Text inside documents is in long-term scope (timing is an MVP question). Natural-language questions belong to the AI Assistant.</td></tr>
+          <tr><td><b>Reminders &amp; notifications</b></td><td>Reminders attach to any key date. Smart defaults per type, visible and editable, <b>delivered calmly</b>: urgent ones notify directly, less urgent ones go into a periodic digest. Channels: in-app and email, with push later. Quiet hours.</td></tr>
+          <tr><td><b>Capture &amp; import</b></td><td>Quick add, templates, document upload, email forwarding, bulk import (spreadsheets, calendar files). A <b>capture Inbox</b> (capture now, organize later), with gentle prompts in the digest to sort it. Assisted extraction is intelligence (S3b), opt-in, never required.</td></tr>
+          <tr><td><b>Export &amp; portability</b></td><td>Full export of every block and module in open formats, anytime, including after cancelling.</td></tr>
+        </table></div>
+        <p class="note" style="margin-top:8px">Dependency noted: Overview, Calendar and Reminders all rely on reliable key dates. The journeys must show low-effort, verifiable date capture.</p>
+      </div>
+      <div class="approved">
+        <div class="tag">Approved · S3b · 24 Nov 2026</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Capability</th><th>Approved definition</th></tr>
+          <tr><td><b>Activity Timeline</b> &amp; <b>Security log</b></td><td>Two separate concepts. <b>Activity Timeline:</b> changes and actions on items (including automatic changes and future delegated actions), within permissions. <b>Security log:</b> sign-ins, devices, exports and sharing changes, visible to the account owner only. <b>Rule: record changes, never views.</b> No "last seen", no view tracking, and nothing about a member's private items. Life history is covered by past calendar entries and key dates.</td></tr>
+          <tr><td><b>Automation</b></td><td>A behind-the-scenes shared capability, not a user-facing experience. Committed core: <b>built-in smart behaviours</b> (renewals roll dates forward, expiry changes status, templates create default reminders, recurring obligations create expected costs). Every automatic change is visible in the Activity Timeline and can be undone. User-configurable rules are a possible future capability (S8).</td></tr>
+          <tr><td><b>Insights</b> (Personal Analytics)</td><td>Embedded in context: cost of ownership on an item, subscription totals, spending trends, plus short summaries in the Overview and digest. No separate analytics area. Informational only. Final user-facing wording is set during the journeys.</td></tr>
+          <tr><td><b>AI Assistant</b></td><td>Embedded first, with an optional "Ask" interface whose answers cite the records used. <b>Can be switched off entirely at account level, and Omniva stays fully functional.</b> All Product Vision 7.4 guardrails apply.</td></tr>
+          <tr><td><b>E2EE Vault</b></td><td><b>In long-term scope, limited:</b> an optional protected area for sensitive files and notes only. Per item, the user chooses whether the title and key dates stay outside encryption. Mandatory recovery key. Plain-language explanation of its limits. Vault contents are excluded from server search, insights, AI and automation. Timing is an MVP / stage question.</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s4">
+    <summary>S4 · Module responsibilities <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>For each module: its purpose, the main types it builds on the shared blocks, its key connections, and the defining decision. Boundaries (Own, Connect, Out of scope) are shown in the module boundary cards below.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="cards" style="margin-top:8px" id="s4cards"></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s5">
+    <summary>S5 · Cross-module relationships <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>How things connect across modules. Links are what turn twelve modules into one connected life.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <ul style="margin-top:8px">
+          <li><b>A defined set of named relationships</b> with plain-language names, plus a generic "related to" for anything else.</li>
+          <li><b>Links are two-way:</b> a link is visible from both sides (the car shows its insurance, and the insurance shows its car).</li>
+          <li><b>Links stay within one workspace.</b> Connecting a personal item to a shared one means moving it into the shared workspace. When an item moves, the user chooses which related items move with it, and is shown what will become visible.</li>
+          <li><b>Plans group things across modules</b> through "part of", without changing each item's home module.</li>
+          <li><b>Deleting or archiving</b> never silently deletes linked items. The user sees what is linked and decides.</li>
+        </ul>
+        <h4 style="margin-top:14px">Relationship types</h4>
+        <div class="tablewrap"><table>
+          <tr><th>Relationship</th><th>Connects</th><th>Example</th></tr>
+          <tr><td><b>attached to</b></td><td>Document → anything</td><td>Invoice attached to a laptop</td></tr>
+          <tr><td><b>costs</b></td><td>Money record → anything</td><td>Repair bill for the car</td></tr>
+          <tr><td><b>covers</b></td><td>Obligation → Item / Person</td><td>Insurance covers the apartment</td></tr>
+          <tr><td><b>maintains</b></td><td>Task / Event → Item</td><td>Annual service of the boiler</td></tr>
+          <tr><td><b>part of</b></td><td>Anything → Plan</td><td>Flight booking is part of the trip</td></tr>
+          <tr><td><b>involves</b></td><td>Anything → Person</td><td>Landlord on the lease</td></tr>
+          <tr><td><b>located at</b></td><td>Item → Property</td><td>Washing machine at the apartment</td></tr>
+          <tr><td><b>results in</b></td><td>Anything → anything</td><td>Course results in a certificate</td></tr>
+          <tr><td><b>replaces</b></td><td>Item → Item</td><td>New phone replaces the old one</td></tr>
+          <tr><td><b>related to</b></td><td>Anything ↔ anything</td><td>Generic link</td></tr>
+        </table></div>
+        <h4 style="margin-top:14px">Connection map between modules</h4>
+        <p class="note">● strong, built-in connection · ○ common connection. Productivity connects to every module because tasks attach to anything.</p>
+        <div class="tablewrap"><table id="matrix" class="matrix"></table></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s6">
+    <summary>S6 · External integrations <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The Connect zone: what Omniva brings in from specialist services, in which stage, and under which rules.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <h4 style="margin-top:8px">Rules for every integration</h4>
+        <ul>
+          <li>Opt-in, read-only by default, and revocable at any time.</li>
+          <li>The user sees exactly what is imported, and imported data follows the same ownership, export and deletion rules.</li>
+          <li>A failed or removed integration never breaks the core product.</li>
+          <li>Availability by region is documented, not assumed.</li>
+          <li>Never used to move money or act on the user's behalf.</li>
+        </ul>
+        <div class="tablewrap" style="margin-top:10px"><table>
+          <tr><th>Integration</th><th>Direction</th><th>Stage</th><th>Notes</th></tr>
+          <tr><td>External calendars</td><td>Import events · read-only feed out</td><td>2</td><td>Two-way sync is a possible future capability (S8)</td></tr>
+          <tr><td>Cloud drives</td><td>Import files</td><td>2</td><td>Import, not a cloud-drive replacement</td></tr>
+          <tr><td>Phone contacts</td><td>Selective import</td><td>2 (mobile)</td><td>The user picks contacts. No bulk upload, which protects other people's privacy.</td></tr>
+          <tr><td>Travel bookings</td><td>Via email forwarding</td><td>2–3</td><td>Confirmations become events and documents</td></tr>
+          <tr><td>Bank &amp; financial data</td><td>Read-only import</td><td>2–3</td><td><b>Region-dependent.</b> Never payments.</td></tr>
+          <tr><td>Mailbox connection</td><td>Read-only, opt-in</td><td>3</td><td>Privacy-heavy. Email forwarding comes first.</td></tr>
+          <tr><td>Health platforms &amp; wearables</td><td>Read-only import</td><td>3</td><td>Needs the mobile app. Health stays excluded from AI and Insights by default.</td></tr>
+          <tr><td>Streaming, learning, professional networks</td><td>Import lists and records</td><td>4</td><td>Low priority</td></tr>
+          <tr><td>Insurance, valuation, utility providers</td><td>Import</td><td>Later, to evaluate</td><td>Region-dependent</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s7">
+    <summary>S7 · Dependencies <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>What has to exist before something else can work. This shapes the order of everything later, including the MVP.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="flow" style="margin-top:8px" aria-label="Dependency order">
+          <span class="step">Foundation</span><span class="arr">→</span><span class="step">Building blocks + anatomy (key dates)</span><span class="arr">→</span><span class="step">Shared capabilities</span><span class="arr">→</span><span class="step">Modules</span><span class="arr">→</span><span class="step">Cross-life experiences</span>
+        </div>
+        <div class="tablewrap" style="margin-top:12px"><table>
+          <tr><th>Dependency</th><th>Required by</th><th>Implication</th></tr>
+          <tr><td>Key dates + Reminders</td><td>Every proactive feature, Overview, Calendar</td><td>Must be reliable before any module counts as done</td></tr>
+          <tr><td>Documents &amp; Files</td><td>Almost every module</td><td>The dependency hub. It comes early.</td></tr>
+          <tr><td>People directory (Social home)</td><td>Health providers, Home providers, Career contacts, Travel</td><td>A basic directory is needed early, even if the full Social module comes later</td></tr>
+          <tr><td>Obligations</td><td>Subscriptions, Home utilities, insurance, loans</td><td>Underpins all recurring commitments</td></tr>
+          <tr><td>Money records</td><td>Cost of ownership, Insights, Finance</td><td>Needed for the first connected insights</td></tr>
+          <tr><td>Plans</td><td>Travel, moves, life transitions</td><td>Needed for life-transition journeys</td></tr>
+          <tr><td>Measurements</td><td>Health, vehicle mileage, meter readings</td><td>Can follow later</td></tr>
+          <tr><td>Shared workspaces</td><td>Couple and household journeys</td><td>Conditional placement (Product Vision 7.2)</td></tr>
+          <tr><td>Managed profiles</td><td>Family health and documents</td><td>Needs mature sharing and privacy rules first</td></tr>
+          <tr><td>Integrations</td><td>Health depth, bank data, travel import</td><td>Region-dependent. Never block the core.</td></tr>
+          <tr><td>AI Assistant</td><td>Ask, suggestions</td><td>Depends on everything and nothing depends on it, because it is optional</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="s8">
+    <summary>S8 · Long-term product vs future capabilities <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>What is committed long-term scope, what is only a possible future capability, and what is not pursued.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="cards" style="margin-top:8px">
+          <div class="card"><h4>Committed long-term scope</h4><ul style="margin:0;padding-left:18px;color:var(--muted);font-size:13.5px">
+            <li>All 12 modules as defined in S4</li><li>The ten building blocks and the shared anatomy</li><li>All S3 capabilities, including the limited Vault</li><li>Shared workspaces and managed profiles</li><li>Legacy and emergency access (stages 3–4)</li><li>User-authorized personal connections (stage 3)</li><li>Delegated actions with every Area 6 safeguard (stage 4)</li><li>Text inside documents in search</li></ul></div>
+          <div class="card"><h4>Possible future capabilities</h4><p class="note" style="margin:0">Evaluated later through the boundary-change rule. Not committed.</p><ul style="margin:0;padding-left:18px;color:var(--muted);font-size:13.5px">
+            <li>User-configurable automation rules</li><li>Two-way calendar sync</li><li>Private references across workspaces</li><li>Curated partner integrations (stage 4)</li><li>Offline editing on mobile</li><li>Voice assistants and smart devices</li><li>Distribution through organizations (no data access)</li></ul></div>
+          <div class="card"><h4>Not pursued</h4><ul style="margin:0;padding-left:18px;color:var(--muted);font-size:13.5px">
+            <li>Public developer platform and plugin marketplace</li><li>General messaging or chat</li><li>Payments or moving money</li><li>A separate analytics area</li><li>Gamification (streaks, badges)</li><li>A separate desktop app</li><li>Everything marked Out of scope in the module boundaries</li></ul></div>
+        </div>
+        <h4 style="margin-top:14px">Managed profiles: approved concept (details later)</h4>
+        <ul>
+          <li>A managed profile is a Person with managed status. Their documents, health records and key dates belong to the managing user's workspace, personal or shared (for example, both parents).</li>
+          <li>The dependant has no access while managed.</li>
+          <li>When a dependant becomes an adult, the managing user can hand the profile over as the dependant's own account, transferring their records, with the dependant's consent.</li>
+          <li>Stage 3. Detailed permissions, privacy rules and edge cases are defined during specification.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="block" id="modules">
+    <summary>Module boundaries (approved in Product Vision, Area 6) <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p class="note">Boundaries are approved. Detailed responsibilities for each module are in S4 (approved).</p>
+      <div class="cards" id="moduleCards"></div>
+    </div>
+  </details>
+</section>
+
+<section class="area" id="journeys">
+  <div class="areahead"><div class="eyebrow">Area 2</div><h2>User Journeys &amp; Use Cases</h2><span class="badge b-ok">Approved</span></div>
+  <p class="lede">Realistic situations where connected information makes a real difference. Gaps found here go back to scope as explicit decisions.</p>
+  <div class="tablewrap"><table id="t-journeys"></table></div>
+
+  <details class="block" id="j1" open>
+    <summary>J1 · Journey framework &amp; personas <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>How journeys are grounded (personas), written (format) and selected (criteria).</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J1.1 Personas: thin, situation-based, labelled as hypotheses.</b> Each persona is defined by life load, current tools, trigger moment, fear, and what success means, and maps to an entry segment. They are replaced by interview evidence as validation happens and never justify a feature on their own. Rejected: demographic personas (contradict the life-complexity profile, invite invented detail); jobs-only with no personas (loses who does the work).</p>
+        <div class="tablewrap"><table>
+          <tr><th>Persona</th><th>Situation</th><th>Entry segment</th></tr>
+          <tr><td><b>P1 The self-organizer</b></td><td>Already runs life on spreadsheets, Notion and folders. Pain: upkeep, no reminders, nothing connected.</td><td>Self-organizers (early adopters)</td></tr>
+          <tr><td><b>P2 The person in transition</b></td><td>A move, new job or new country causes a spike in documents and deadlines. Plans carry the load. Expats are a variant, not a separate persona.</td><td>Major life transitions</td></tr>
+          <tr><td><b>P3 The couple building a shared life</b></td><td>A private life and a shared life at once. Includes a secondary role: <b>the less-engaged partner</b>.</td><td>Young couples</td></tr>
+          <tr><td><b>P4 The person carrying others</b> (long-term)</td><td>Manages records for children or an aging parent. Keeps journeys from ruling out managed profiles. Stage 3.</td><td>None yet (long-term)</td></tr>
+        </table></div>
+        <p class="note">Check only, not personas: the "not designed for" profiles (simple to-do seeker, specialist power user). A journey that mainly serves them is a warning sign.</p>
+        <p><b>J1.2 Journey format:</b> short narrative plus a structured breakdown: trigger · goal · <b>status quo without Omniva</b> · steps (what the user does / what Omniva does) · <b>connections that make the difference</b> · where value appears on the value timeline · effort points and failure risks · capabilities used (S references) · <b>gaps found</b> (to J6). No screens or UI flows. Rejected: user-story lists (become feature lists); detailed UX storyboards (too early).</p>
+        <p><b>J1.3 Qualifying criteria:</b> a journey is included only if (a) it involves at least two modules or blocks in a way that matters to the user, (b) the status quo fails at a specific, nameable moment, and (c) it fits a persona's real trigger. Each journey is tagged <b>episodic / recurring / daily</b>. No requirement to cover every module: a module absent from strong journeys is an MVP finding, not something to patch.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="j2" open>
+    <summary>J2 · Foundational journeys <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The journeys every user goes through regardless of persona. Split into Part 1 (first session, first weeks) and Part 2 (capture, finding things, digest and weekly review).</p>
+      <div class="approved">
+        <div class="tag">Approved · Part 1 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J2.1 First session: trigger-led life inventory</b> (P1, P2 · episodic · value timeline: first session). Optional "What brought you here?" (moving, new car, getting organized, renewals), then 5–8 tailored prompts, each asking only what the thing is and the one key date that matters. Omniva shows the default reminder it will set (visible, editable), offers connections in natural language ("Is this insurance for your car?"), and lands on an Overview with real upcoming dates and cards only for areas used. Plain-language privacy promise up front. <b>Document upload is optional in the first session</b> (can go to the Inbox later). Import is a side path for self-organizers. Goal: one working connection visible in session one. Rejected: module picker with an empty Overview (abandonment); import-first as default (effort; extraction is opt-in); a plain inventory without a trigger.</p>
+        <p><b>J2.2 First weeks: the first reminder that matters</b> (all · episodic turning recurring · value timeline: first weeks). The return path is the calm digest, not engagement tricks. The first reminder that prevents a miss is the moment of truth, so reliability dominates. <b>Digest suggestions are connection-driven and capped:</b> at most 1–2 per digest, always based on something already in Omniva ("You added a car. Add its insurance renewal?"), never generic, and can be switched off. Rejected: no suggestions (connected value never appears); progress bars or completeness scores (gamification).</p>
+        <p class="note">Gap sent to J6: <b>missing key date</b> ("I don't know the date"). Suggestion to evaluate: allow it, mark "date missing", surface gently in the attention list. Note for M8: "first useful reminder within 10 minutes" fits J2.1.</p>
+      </div>
+      <div class="approved" style="margin-top:12px">
+        <div class="tag">Approved · Part 2 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J2.3 Capture: optional quick hints</b> (P1, P2 · recurring, irregular). Stage-1 capture works in a mobile browser and through email forwarding. At capture, one optional "link to…" a recent or likely item and an optional "is there a date?"; skipping sends it to the Inbox. Simple rule-based suggestions (a forwarded email from a known sender matches an existing subscription). AI extraction stays opt-in, later. Rejected: classify at capture (friction); Inbox-only (graveyard, no connections).</p>
+        <p><b>J2.4 Finding things: search plus the connected item page as the hub</b> (all · recurring, often urgent). People search by the thing, not the document type, so results show the item with what is attached to it. The item page shows everything about it (invoice, warranty, insurance, maintenance, costs). Saved smart views for recurring needs. Natural-language questions stay with the optional Ask. Risk noted: urgent lookups on the go; stage 1 is online mobile web, offline read comes with native mobile (stage 2). Rejected: search-only flat list; module browsing only.</p>
+        <p><b>J2.5 Digest and weekly rhythm</b> (all · recurring). <b>Weekly by default, adjustable</b> (weekly / every two weeks / monthly); urgent items notify directly. Contents: coming up, decisions before renewals (keep or cancel, trials ending), Inbox to sort, 1–2 connection suggestions, one short insight; every entry actionable (done, snooze, open). A quiet week sends a one-line "nothing needs you this week" (can be turned off). <b>No separate weekly-review feature:</b> the digest plus the Overview is the review. Rejected: daily digest (noise); only-when-needed (silence reads as broken).</p>
+        <p class="note">Gap sent to J6: <b>rule-based (non-AI) matching at capture</b> is not explicitly defined in scope.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="j3" open>
+    <summary>J3 · Cross-module signature journeys <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The journeys where connection makes the clearest difference. Each is detailed one at a time.</p>
+      <div class="approved">
+        <div class="tag">Approved · J3.0 and J3.1 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J3.0 The set:</b> six signature journeys, detailed in this order: <b>car → something breaks → renewal season → trip → move → new baby</b> (new baby marked long-term: needs managed profiles, stage 3). "Something breaks" and "renewal season" were added; renewal season is the most frequent cross-module journey. The move covers new-job and new-country variants. Not now: tax season (tax filing out of scope, region-dependent; revisit with the entry region); a health episode as its own journey (deeper Health is stage 3; it appears inside the new-baby journey).</p>
+        <p><b>J3.1 The car</b> (P1 · episodic, then recurring for years). The journey works in fragments over time, not one linear session.</p>
+        <div class="tablewrap"><table>
+          <tr><th>Moment</th><th>User</th><th>Omniva</th><th>Connection</th></tr>
+          <tr><td>Day 0, purchase</td><td>Adds the car (make, plate, purchase date, price); uploads invoice and registration</td><td>Template asks essentials only, suggests key dates (warranty end, inspection, registration renewal, service interval)</td><td>Purchase cost <i>costs</i> the car; documents <i>attached to</i> the car</td></tr>
+          <tr><td>Week 1</td><td>Forwards the insurance email; adds the loan if financed</td><td>"Link to your car?" creates the policy in Subscriptions with renewal date and premium</td><td>Insurance <i>covers</i> the car; premium and loan become expected costs</td></tr>
+          <tr><td>Months</td><td>Gets the service reminder, logs the bill, opens the car page</td><td>Everything in one place, plus cost of ownership so far</td><td>Service <i>maintains</i> the car; bill <i>costs</i> the car; embedded Insight</td></tr>
+          <tr><td>Renewal</td><td>"Car insurance renews in 30 days. Keep or review?"</td><td>Shows last year's premium next to the renewal date</td><td>Subscriptions ↔ Finance</td></tr>
+          <tr><td>Sale</td><td>Marks the car sold, enters the price</td><td>Lists everything linked and asks about each (see disposal rule)</td><td>New car <i>replaces</i> the old one; history kept</td></tr>
+        </table></div>
+        <p class="note">Effort rule: essentials first, the rest prompted later through digest suggestions. Mileage-based service needs the Measurement block (timing noted for M3). Gap sent to J6: cost-of-ownership insights must state what they include (for example, fuel is not tracked unless imported).</p>
+        <p><b>Disposal rule (S4 clarification, approved):</b> on disposal, Omniva <b>asks, never assumes</b>. For each linked obligation it asks the user ("Have you cancelled the insurance?") and marks it ended only when the user confirms. Until then the obligation and its reminders stay active. Warranties end with the item.</p>
+      </div>
+      <div class="approved" style="margin-top:12px">
+        <div class="tag">Approved · J3.2 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J3.2 Something breaks</b> (P1 · episodic · value timeline: months onward). The washing machine stops 20 months after purchase. The user searches for it; the item page shows the warranty status ("Under warranty until Mar 2027") with the invoice attached, possible other cover, past repairs and the technician who did them. Omniva shows the provider's contact details and the documents needed; it <b>prepares, never files the claim</b>. The claim is tracked as a task; the outcome is a repair Event (plus a cost if paid) or a new item that <i>replaces</i> the old one.</p>
+        <p><b>Honest limitation:</b> the journey only pays off if the invoice and warranty were captured earlier. If not, it becomes "add it now". This is the strongest argument for low-effort capture and likely the strongest demo story.</p>
+        <p><b>J3.2a Claims:</b> tracked as a task with notes (reference number) and a follow-up date; reimbursements as Money records. A dedicated Claim type is not added now.</p>
+        <p class="note">Sent to J6: a <b>Claim template</b> candidate (insurance and health claims may recur); <b>indirect coverage</b> ("possibly covered by", following policy covers property → item located at property; rule-based, informational, "check your policy"); <b>item-level document download</b> (a claim pack).</p>
+      </div>
+      <div class="approved" style="margin-top:12px">
+        <div class="tag">Approved · J3.3 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J3.3 Renewal season: "what am I paying for?"</b> (P1, P3 · recurring · value timeline: first session and months onward). A checklist of common categories and named services ("Which of these do you pay for?") needs only price and cycle. The <b>All recurring commitments</b> view shows subscriptions, insurance, utilities, rent or mortgage, loans and memberships with monthly and yearly totals and a renewal timeline. Renewal decisions arrive in the digest. Cancelling: Omniva shows how, creates a task, and marks it ended only when the user confirms. Price changes are recorded and shown in history. Insights: totals by area, year-on-year change, and <b>overlapping cover</b> (two policies covering the same item, from direct <i>covers</i> links). Honest limitation: manual until bank import (stage 2–3, region-dependent).</p>
+        <p><b>J3.3a Reminder defaults by type:</b> free trials (a few days before), annual commitments (about 30 days before), price changes. Monthly subscriptions get no reminder by default and appear in totals. All editable. Rejected: remind on every renewal (noise); no reminders (trials convert).</p>
+        <p><b>J3.3b "Ask, never assume" is a cross-cutting rule:</b> Omniva never marks a real-world commitment as ended, cancelled or paid on its own. It asks and the user confirms. (Generalizes the S4 disposal clarification; see the J5 note on auto-renewing dates.)</p>
+        <p><b>J3.3c Service catalog:</b> names and categories only, never prices (prices go stale and become wrong data). Contents follow the entry region. A templates detail within S3a capture.</p>
+        <p class="note">Noted for M2: "What am I paying for?" is a strong first-session trigger (meaningful total within minutes).</p>
+      </div>
+      <div class="approved" style="margin-top:12px">
+        <div class="tag">Approved · J3.4 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J3.4 The trip</b> (P1–P3 · episodic, a few times a year). Status-quo failures: the passport expires too soon for entry, confirmations are buried in email, nobody knows whether travel insurance applies, home tasks are forgotten.</p>
+        <div class="tablewrap"><table>
+          <tr><th>Moment</th><th>User</th><th>Omniva</th><th>Connection</th></tr>
+          <tr><td>Booking</td><td>Forwards the flight confirmation</td><td>"Create a trip?" creates a Trip (Plan) with dates; the booking becomes an Event plus a Document</td><td><i>part of</i> the trip</td></tr>
+          <tr><td>Checks</td><td>Opens the trip</td><td>Rule-based checks: each traveller's identity document valid through the trip plus a margin (default six months, editable); licence if a rental car is booked; any policy that <i>covers</i> the traveller for those dates, or "no travel insurance found"</td><td>Identity documents (Documents), policies (Subscriptions), People</td></tr>
+          <tr><td>Before departure</td><td>Uses a checklist</td><td>Reusable checklist, copied from the user's own previous trip</td><td>Tasks <i>part of</i> the trip</td></tr>
+          <tr><td>During</td><td>Looks up the itinerary</td><td>Itinerary on mobile web (offline with native mobile, stage 2)</td><td>Events, Documents</td></tr>
+          <tr><td>After</td><td>Closes the trip</td><td>Trip cost total; trip archived; places-to-go list kept</td><td>Money records <i>part of</i> the trip</td></tr>
+        </table></div>
+        <p><b>J3.4a No destination rules database:</b> Omniva checks only the user's own dates and documents. It never states visa or entry requirements; it prompts the user to check the official requirements for the destination. Reason: stale data and legal risk, as with prices.</p>
+        <p><b>J3.4b Companions:</b> a companion's documents are checked only if they are in the user's workspace (shared workspace, or a managed profile in stage 3). Otherwise the companion is just a Person linked to the trip.</p>
+      </div>
+      <div class="approved" style="margin-top:12px">
+        <div class="tag">Approved · J3.5 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J3.5 The move</b> (P2 · episodic, high load; covers new-job and new-country variants). Status-quo failures: the old lease's notice period is missed, address changes are forgotten, utilities overlap or lapse, the deposit is never chased.</p>
+        <div class="tablewrap"><table>
+          <tr><th>Moment</th><th>User</th><th>Omniva</th><th>Connection</th></tr>
+          <tr><td>Decision</td><td>Signs a new lease or accepts a job</td><td>Creates a "Move" Plan with the move date from a template</td><td>Plan</td></tr>
+          <tr><td>Old place</td><td>Opens the old lease</td><td>Notice deadline computed from the lease's notice period and shown as a key date</td><td>Lease (Home) <i>part of</i> the move</td></tr>
+          <tr><td>Who has my address?</td><td>Reviews a generated list</td><td>Lists active obligations, financial accounts, identity documents and employer records; the user ticks what needs updating; each becomes a task in the Plan</td><td>Draws on Subscriptions, Finance, Documents, Career</td></tr>
+          <tr><td>Utilities and insurance</td><td>Ends old, starts new</td><td>Flags the home contents policy because it <i>covers</i> the old property</td><td>Home ↔ Subscriptions</td></tr>
+          <tr><td>New place</td><td>Adds the new property</td><td>Offers to move items <i>located at</i> the old property to the new one in one step (user confirms)</td><td><i>located at</i></td></tr>
+          <tr><td>Money</td><td>Logs mover costs; deposit expected back</td><td>Move cost total; the deposit is an expected amount with a key date and a reminder if not returned</td><td>Money records <i>part of</i> the move</td></tr>
+        </table></div>
+        <p><b>New-country variant:</b> residence or work permit as an identity document with expiry; new currency (multi-currency); region-specific checklist items live in user-editable templates and never assert legal requirements.</p>
+      </div>
+      <div class="approved" style="margin-top:12px">
+        <div class="tag">Approved · J3.6 · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>J3.6 New baby</b> (P3, P4 · episodic · <b>long-term reference journey</b>, needs managed profiles in stage 3). Pregnancy appointments (Health); a "New baby" Plan; birth certificate and the baby's identity documents (Documents); health insurance updated to <i>cover</i> the new person; parental leave (Career); costs (Finance); the child as a managed profile whose records belong to the parents' shared workspace; vaccination dates as key dates with reminders.</p>
+        <p><b>J3.6a</b> Its purpose is to test managed profiles, Health and shared workspaces together. It sets no MVP commitments. Before stage 3, the baby is a Person and the records live in the parents' workspace attached to that Person (consistent with S8).</p>
+        <p><b>J3.6b No built-in medical schedules:</b> vaccination and check-up dates are entered by the user (or imported later). Omniva does not supply medical schedules (professional-advice boundary; region-dependent). Health stays excluded from AI and Insights by default.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="j4" open>
+    <summary>J4 · Shared workspace journeys <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>How couples and households share part of life while keeping their private lives private. Placement stays conditional (Product Vision 7.2: stage 2 by default, stage 1 if young couples are the entry segment).</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap"><table>
+          <tr><th>Journey</th><th>What happens</th><th>Decision</th></tr>
+          <tr><td><b>J4.1 Setting up</b> (P3)</td><td>One partner creates a shared workspace and invites the other by email (no contact scraping, no invite spam). The partner has their own account and private personal workspace. Roles Owner, Editor, Viewer with module-level access.</td><td><b>A shared workspace can have several Owners</b>, and inviting a partner as co-owner is the suggested default for couples. No Owner can remove another Owner; any member can leave at any time. Reason: avoids a power imbalance that a controlling partner could exploit.</td></tr>
+          <tr><td><b>J4.2 Moving the car into shared life</b></td><td>Marriage: the car moves from personal to shared. Omniva previews exactly what becomes visible ("7 things will become visible to Sam: invoice, loan, insurance…") and the user picks which related items move (approved S5).</td><td>Illustrates S5. Private notes on the item move only if chosen.</td></tr>
+          <tr><td><b>J4.3 Shared costs</b></td><td>Rent, utilities and the car are shared; personal finance should show the user's own share.</td><td><b>Shared costs carry a split</b> (a workspace default such as 50/50, editable per cost). Personal totals and Insights show "your share". <b>No balances or settle-up ledger</b>: that is a splitting app's job (Connect zone), and Omniva never moves money.</td></tr>
+          <tr><td><b>J4.4 The less-engaged partner</b></td><td>One partner does most of the organizing. The other needs to know what is theirs to do without learning a new system.</td><td><b>Tasks in shared workspaces can be assigned to a member</b>; reminders go to the assignee. The less-engaged partner's digest contains only shared items and their own assignments. Viewer role is available for those who only want to look.</td></tr>
+          <tr><td><b>J4.5 Leaving or breaking up</b></td><td>A partner leaves the shared workspace, possibly in a difficult situation.</td><td><b>Leaving is instant</b> and needs nobody's approval. Before leaving, a member can <b>copy chosen items to their personal workspace</b> or export what they currently have access to, <b>except another member's identity documents and private records about that member</b>. Omniva does not decide disputes over items. The remaining members see "left the workspace" in the Activity Timeline; nothing else. If the last Owner leaves, the workspace is closed with a final export offered to remaining members.</td></tr>
+        </table></div>
+        <p class="note">Safety rules that apply throughout (already approved, restated): personal workspaces are never reachable through shared membership; changes are recorded, never views; the Security log is per account and owner-only.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="j5" open>
+    <summary>J5 · Edge cases &amp; failure scenarios <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>What happens when things go wrong. For a system of record, these define trust more than the happy paths do.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap"><table>
+          <tr><th>Scenario</th><th>Handling</th><th>Principle</th></tr>
+          <tr><td>A reminder email lands in spam or is missed</td><td>Every reminder also stays in the Overview's attention list until handled. Setup includes a test notification. Repeated delivery failures are shown to the user.</td><td>Reliable above all</td></tr>
+          <tr><td>A wrong date is entered (2205, or expiry before issue)</td><td><b>Plausibility checks</b> on key dates, and every date is confirmed in plain words ("renews in 3 days").</td><td>Reliable above all</td></tr>
+          <tr><td>The user doesn't know a date</td><td><b>"Date missing"</b> state, surfaced gently in the attention list, with an optional task to find it.</td><td>Low effort, reliable</td></tr>
+          <tr><td>A renewal is rolled forward but didn't happen</td><td><b>Clarification of S3b automation:</b> dates roll forward automatically only for commitments that renew automatically in the real world (subscriptions, auto-renewing policies), visibly and undoably. Commitments that need the user to act (passport, licence, registration) <b>expire</b> until the user enters the new date.</td><td>Ask, never assume</td></tr>
+          <tr><td>The same thing is added twice (forwarded and typed)</td><td>Rule-based duplicate suggestion with a merge option; never merged silently.</td><td>Reliable, user decides</td></tr>
+          <tr><td>Forgotten password or lost second factor</td><td>Recovery through verified channels with a waiting period and notifications. Vault contents cannot be recovered without the passphrase or recovery key (approved, stated plainly at Vault setup).</td><td>Trust & control</td></tr>
+          <tr><td>Suspected account takeover</td><td>Notifications on new sign-ins, exports and sharing changes; sign out of all devices; the Security log shows what happened.</td><td>Trust & control</td></tr>
+          <tr><td>A Vault item hides its dates</td><td>The user is warned at that choice that hidden dates get no reminders and do not appear in the calendar.</td><td>Honest</td></tr>
+          <tr><td>Travel across time zones</td><td>Key dates are calendar dates without a time and remind in the user's current time zone; timed events keep their own time zone.</td><td>Global by design</td></tr>
+          <tr><td>Two members edit the same item at once</td><td>Both changes are recorded in the Activity Timeline; a conflicting overwrite is flagged rather than lost silently.</td><td>Reliable</td></tr>
+          <tr><td>An integration stops updating</td><td>The core keeps working; imported data shows "last updated" so stale data is never presented as current.</td><td>Honest, integrations never break the core</td></tr>
+          <tr><td>The user stops paying or exceeds free limits</td><td>Read-only access and export with no time limit (approved). Nothing is deleted for exceeding a limit.</td><td>Public commitment</td></tr>
+          <tr><td>The user dies or is incapacitated</td><td>Legacy and emergency access in stages 3–4 (approved). Until then nothing is available, and this is stated honestly.</td><td>Honest</td></tr>
+          <tr><td>Deleting a person who is linked (an ex-partner)</td><td>Shows what is linked; nothing is deleted silently (approved S5).</td><td>Trust & control</td></tr>
+          <tr><td>A controlling partner in a shared workspace</td><td>Instant leaving, no view tracking, personal workspace unreachable, per-account Security log, sign-in notifications.</td><td>Trust & control</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="j6" open>
+    <summary>J6 · Scope gaps review <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>Capabilities the journeys revealed, sent back to Product Scope as explicit decisions. None of the additions moves anything out of the Out-of-scope zone, so the boundary-change rule is not triggered. MVP timing for each is decided in Area 3.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap"><table>
+          <tr><th>#</th><th>Gap (source)</th><th>Decision</th><th>Scope area amended</th></tr>
+          <tr><td>G1</td><td>Missing key date (J2.1)</td><td>Added: a "date missing" state, surfaced gently, optional task to find it</td><td>S2 anatomy, S3a reminders</td></tr>
+          <tr><td>G2</td><td>Rule-based matching at capture (J2.3, J3.4)</td><td>Added as a built-in automation: non-AI suggestions (known sender → existing item; booking → create trip). Always a suggestion the user confirms.</td><td>S3b automation, S3a capture</td></tr>
+          <tr><td>G3</td><td>Insights state what they include (J3.1)</td><td>Added as a rule: every Insight says what it covers and what it doesn't</td><td>S3b insights</td></tr>
+          <tr><td>G4</td><td>Claim template (J3.2)</td><td>Added as a template, not a building block: reference, amount claimed, amount reimbursed, status, follow-up date</td><td>S3a templates</td></tr>
+          <tr><td>G5</td><td>Indirect coverage (J3.2)</td><td>Added, limited: "possibly covered by" following <i>covers</i> a property → item <i>located at</i> that property. Rule-based, informational, always "check your policy".</td><td>S5 relationships</td></tr>
+          <tr><td>G6</td><td>Item-level document download (J3.2)</td><td>Added: download all documents attached to an item (or a Plan) together</td><td>S3a export</td></tr>
+          <tr><td>G7</td><td>User-created templates (J3.4)</td><td>Added: save a Plan or checklist as a personal template and reuse it</td><td>S3a templates</td></tr>
+          <tr><td>G8</td><td>Templates that draw on existing records (J3.5)</td><td>Added: templates can generate suggestions from the user's own records ("who has your address?"); the user picks</td><td>S3a templates</td></tr>
+          <tr><td>G9</td><td>Bulk change of location (J3.5)</td><td>Added: move items <i>located at</i> one property to another in one confirmed step</td><td>S5 relationships</td></tr>
+          <tr><td>G10</td><td>Shared costs (J4.3)</td><td>Added: a split on shared costs, "your share" in personal totals. Settle-up ledger: <b>Out of scope</b> (Connect zone).</td><td>S4 Finance, shared workspaces</td></tr>
+          <tr><td>G11</td><td>Task assignment (J4.4)</td><td>Added: assign tasks to a member in shared workspaces; reminders go to the assignee</td><td>S4 Productivity</td></tr>
+          <tr><td>G12</td><td>Several Owners (J4.1)</td><td>Clarified: a shared workspace can have several Owners; no Owner removes another; anyone can leave</td><td>Product Vision 7.7 roles</td></tr>
+          <tr><td>G13</td><td>Leaving with copies (J4.5)</td><td>Added: copy chosen items or export on leaving, excluding another member's identity documents and private records</td><td>Foundation: sharing</td></tr>
+          <tr><td>G14</td><td>Date plausibility (J5)</td><td>Added: plausibility checks and plain-language date confirmation</td><td>S2 anatomy</td></tr>
+          <tr><td>G15</td><td>Duplicates (J5)</td><td>Added: rule-based duplicate suggestions with merge; never silent</td><td>S3b automation</td></tr>
+          <tr><td>G16</td><td>Auto-roll of renewals (J5)</td><td>Clarified: roll forward only for auto-renewing commitments; action-required renewals expire until updated</td><td>S3b automation</td></tr>
+          <tr><td>G17</td><td>Ask, never assume (J3.1, J3.3)</td><td>Cross-cutting rule: Omniva never marks a real-world commitment ended, cancelled or paid on its own</td><td>All modules</td></tr>
+          <tr><td>G18</td><td>Stale integration data (J5)</td><td>Added: "last updated" shown on imported data</td><td>S6 rules</td></tr>
+          <tr><td>G19</td><td>Security notifications (J5)</td><td>Confirmed in Foundation: new sign-in, export and sharing-change notifications</td><td>Foundation</td></tr>
+          <tr><td>—</td><td>Destination entry rules, built-in medical schedules, prices in the service catalog</td><td><b>Not pursued</b>: stale data, legal and advice risk</td><td>Boundaries</td></tr>
+        </table></div>
+        <p style="margin-top:12px"><b>User-facing wording (pending since S2, decided here):</b></p>
+        <div class="tablewrap"><table>
+          <tr><th>Concept</th><th>What users see</th></tr>
+          <tr><td>Item, Obligation, Money record, Measurement</td><td>Never shown as words. Users see real types ("Car", "Netflix") and plain groupings: <b>Recurring</b> (obligations), <b>Costs</b> (money records), <b>Readings</b> (measurements)</td></tr>
+          <tr><td>Plan</td><td>Shown as <b>Plan</b> (users name their own: "Trip to Rome", "Move")</td></tr>
+          <tr><td>Task, Note, Document, Person</td><td>Shown as <b>Task</b>, <b>Note</b>, <b>Document</b>, <b>People</b></td></tr>
+          <tr><td>Key dates</td><td><b>Important dates</b></td></tr>
+          <tr><td>Insights</td><td>No standing label: facts appear inline where they matter. Where a heading is needed: <b>At a glance</b></td></tr>
+          <tr><td>Inbox, digest</td><td><b>Inbox</b>; the digest is named by cadence ("Your week")</td></tr>
+        </table></div>
+        <p class="note">Arabic equivalents are chosen during specification, with the same plain-language rule.</p>
+      </div>
+    </div>
+  </details>
+</section>
+
+<section class="area" id="mvp">
+  <div class="areahead"><div class="eyebrow">Area 3</div><h2>MVP Definition</h2><span class="badge b-ok">Approved</span></div>
+  <p class="lede">The smallest coherent version of Omniva that delivers connected value. <b>Product Definition (Scope, Journeys, MVP) completed 24 Nov 2026.</b> System Design starts only when the project is explicitly moved to that stage.</p>
+  <div class="tablewrap"><table id="t-mvp"></table></div>
+  <details class="block" id="m1" open>
+    <summary>M1 · Target users &amp; primary problem <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>Who the MVP is for and the problem it solves. An MVP assumption, not a change to Omniva's identity; validation (M7) can overturn it.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>M1.1 Entry-segment assumption: self-organizers</b>, with life transitions as <i>triggers</i> within that group (a move, a new car, renewal season), not a separate segment. Young couples stay a stage-2 segment, so shared workspaces stay in stage 2 and the conditional move to stage 1 is not triggered. Risk recorded: self-organizers are the hardest group to win from the status quo, which makes them a demanding validation test. Rejected as the MVP assumption: life transitions alone (episodic, hard to reach at the right time); young couples (forces shared workspaces into stage 1, two-sided adoption).</p>
+        <p><b>M1.2 Primary problem:</b> <i>"I keep my life organized by hand, but the information is scattered and nothing tells me what's coming, so things slip and I can't find what I need when it matters."</i> Connection is how Omniva solves it, not the pitch. The two proofs users can feel: <b>nothing important slips</b> (Anticipate) and <b>anything can be found in seconds, with everything related to it</b> (See + Connect). These feed M8.</p>
+        <p><b>M1.3 Region and language assumption: region-neutral, English first.</b> Multi-currency on; no region-dependent features in the MVP; service catalog generic; Arabic and RTL designed in from the start and launched in stage 2 as approved. Revisit if a specific entry region (especially an Arabic-speaking one) is chosen.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m2" open>
+    <summary>M2 · Essential journeys <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The journeys the MVP must deliver end to end. Tiers: <b>Essential</b> (end to end, reliable, judged on it), <b>Light</b> (reduced depth), <b>Later</b>.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Journey</th><th>Tier</th><th>Why</th></tr>
+          <tr><td>J2.1 First session</td><td><b>Essential</b></td><td>Prevents the empty app</td></tr>
+          <tr><td>J2.2 / J2.5 Reminders and weekly digest</td><td><b>Essential</b></td><td>Proof that nothing slips; the return path</td></tr>
+          <tr><td>J2.3 Capture (mobile web, email forwarding, Inbox)</td><td><b>Essential</b></td><td>Data is created on phones and in email</td></tr>
+          <tr><td>J2.4 Finding</td><td><b>Essential</b></td><td>Proof that things are found in seconds</td></tr>
+          <tr><td>J3.3 Renewal season</td><td><b>Essential</b></td><td>Fastest "aha", recurring, best fit for self-organizers</td></tr>
+          <tr><td>J3.1 Car</td><td><b>Essential</b> (without mileage-based service)</td><td>Full connected lifecycle of one thing</td></tr>
+          <tr><td>J3.2 Something breaks</td><td><b>Essential</b></td><td>Strongest demo; payoff for early capture</td></tr>
+          <tr><td>J3.4 Trip</td><td><b>Light</b></td><td>Trip from a forwarded booking, documents and events part of the trip, passport and insurance checks, cost total. No reusable checklists yet.</td></tr>
+          <tr><td>J3.5 Move</td><td>Later (first candidate to pull in)</td><td>Pulled in if validation shows transitions bring people in</td></tr>
+          <tr><td>J3.6 New baby</td><td>Later</td><td>Stage 3 (managed profiles)</td></tr>
+          <tr><td>J4 Shared workspaces</td><td>Later</td><td>Stage 2, following M1</td></tr>
+        </table></div>
+        <p><b>M2.2</b> One Plan journey in the MVP: the <b>trip, light</b> (frequent, which helps retention; exercises identity-document and insurance checks; simplest Plan). Rejected: no Plan journey (transitions shrink to car and renewals); the move (rare, heavier).</p>
+        <p><b>M2.3 Essential reliability cases</b> (from J5): reminders persist in the Overview until handled; test notification; date plausibility checks; "date missing"; auto-roll only for auto-renewing commitments; "ask, never assume"; account recovery and security notifications; full export. Other J5 cases follow the features they belong to.</p>
+        <p><b>M2.4 First-session triggers:</b> "What am I paying for?", "My car / my things", "Getting organized", "Upcoming trip". No "Moving" trigger until the move journey exists (offering what can't be delivered would break "honest").</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m3" open>
+    <summary>M3 · Modules &amp; required depth <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>Which modules the MVP contains and how deep each goes, derived from the essential journeys (M2).</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Module</th><th>Depth</th><th>In the MVP</th><th>Waits</th></tr>
+          <tr><td>Documents &amp; Files</td><td><b>Full</b></td><td>Upload, types (incl. identity documents with expiry), attach to anything, tags, smart views, email forwarding, item-level download</td><td>Text inside documents in search, cloud-drive import</td></tr>
+          <tr><td>Assets &amp; Possessions</td><td><b>Full</b></td><td>Vehicle, electronics, appliances, valuables, custom types; purchase, warranty, maintenance, disposal (ask, never assume), <i>replaces</i></td><td>Mileage, valuation</td></tr>
+          <tr><td>Subscriptions &amp; Services</td><td><b>Full</b></td><td>Subscriptions, insurance (<i>covers</i>), memberships, free trials, All recurring view, totals, price history, reminders by type, catalog of names</td><td>Bank detection (Connect, stage 2–3)</td></tr>
+          <tr><td>Finance &amp; Wealth</td><td>Light</td><td>Costs on things, loans and bills as recurring commitments, totals, cost of ownership, multi-currency</td><td>Accounts, balances, net worth, budgets, bank import</td></tr>
+          <tr><td>Home Management</td><td>Light</td><td>Property as a place (things <i>located at</i> it, insurance <i>covering</i> it); rent or mortgage and utilities as recurring commitments</td><td>Maintenance schedules, shopping lists, household tasks view</td></tr>
+          <tr><td>Personal Productivity</td><td>Light</td><td>Tasks attached to anything, due dates, recurrence, reminders</td><td>Goals, habits, commitments to people</td></tr>
+          <tr><td>Travel &amp; Experiences</td><td>Light</td><td>Trip (Plan), bookings, passport and insurance checks, cost total</td><td>Itinerary depth, wish list, reusable checklists</td></tr>
+          <tr><td>Social &amp; Relationships</td><td>Minimal</td><td>Basic People directory (technician, insurer, landlord)</td><td>Important dates, notes, gift ideas, contact import</td></tr>
+          <tr><td>Health, Career, Learning, Entertainment</td><td>Not in MVP</td><td>Their documents still work (as Documents); health insurance lives in Subscriptions</td><td>All specialised features</td></tr>
+        </table></div>
+        <p><b>3 full, 4 light, 1 minimal, 4 not in the MVP.</b> The lighter modules are thin views over shared building blocks, not mini-apps; the quality risk is concentrated in the three full modules. This reconciles the discovery direction (seven areas) with the feasibility proposal (Finance as costs on things, Home as a place).</p>
+        <p><b>M3.2 Measurement block: not in the MVP.</b> Car service is time-based only.</p>
+        <p><b>M3.3 Text inside documents in search: not in the MVP</b>; the first post-MVP candidate. Finding works through titles, types, tags, fields and linked items. Trade-off accepted: unlinked scanned letters are harder to find.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m4" open>
+    <summary>M4 · Foundational capabilities <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The shared capabilities every essential journey depends on.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Capability</th><th>MVP</th><th>Notes</th></tr>
+          <tr><td>Account &amp; identity</td><td><b>Essential</b></td><td>Strong sign-in, two-factor available, recovery with a waiting period, security notifications (G19)</td></tr>
+          <tr><td>Workspaces</td><td><b>Personal only</b></td><td>Sharing designed into the model; no user-facing sharing until stage 2</td></tr>
+          <tr><td>Privacy</td><td><b>Essential</b></td><td>Plain-language privacy promise in the first session; public commitments from day one</td></tr>
+          <tr><td>Export</td><td><b>Essential</b></td><td>Full export in open formats, plus item-level download (G6)</td></tr>
+          <tr><td>Import</td><td><b>Essential: spreadsheet import</b></td><td>Self-organizers' existing spreadsheets; calendar-file import waits</td></tr>
+          <tr><td>Calendar feed out (read-only)</td><td><b>Include</b></td><td>Key dates in the calendar people already use</td></tr>
+          <tr><td>Notifications</td><td><b>Essential</b></td><td>In-app and email, weekly digest, quiet hours, test notification; push waits for native mobile</td></tr>
+          <tr><td>Automation (built-in)</td><td><b>Essential</b></td><td>Auto-renewing dates roll forward (G16), expiry changes status, default reminders from templates, expected costs from obligations, duplicate suggestions (G15), rule-based capture suggestions (G2)</td></tr>
+          <tr><td>Activity Timeline</td><td><b>Essential, basic</b></td><td>Changes including automatic ones, with undo</td></tr>
+          <tr><td>Security log</td><td><b>Essential</b></td><td>Owner-only</td></tr>
+          <tr><td>Flexible edges</td><td><b>Essential</b></td><td>Tags, custom fields, custom types, general fallback area</td></tr>
+          <tr><td>Life Overview</td><td><b>Essential</b></td><td>Attention-first, light customization</td></tr>
+          <tr><td>Unified Calendar</td><td><b>Essential</b></td><td>Key dates and events, filters by module and type</td></tr>
+          <tr><td>Universal Search</td><td><b>Essential</b></td><td>Without document text (M3.3)</td></tr>
+          <tr><td>Insights</td><td>Light</td><td>Recurring totals, cost of ownership, price changes, overlapping cover; each states what it includes (G3)</td></tr>
+          <tr><td>Language and accessibility</td><td>English, RTL-ready, accessible baseline</td><td>M1.3; global and inclusive principle</td></tr>
+          <tr><td>AI Assistant</td><td>Not in MVP</td><td>M4.2</td></tr>
+          <tr><td>E2EE Vault</td><td>Not in MVP</td><td>M4.3</td></tr>
+        </table></div>
+        <p><b>M4.2 No AI in the MVP (intelligence level L0).</b> Proves the core value without AI, as the vision requires, and keeps validation clean. Opt-in AI extraction (L1) is the first intelligence step after the MVP.</p>
+        <p><b>M4.3 No Vault in the MVP</b> (consistent with 7.2: stage 2, before public launch). Standard encryption meanwhile. <b>No MVP wording may imply end-to-end encryption.</b></p>
+        <p><b>M4.4 Timing of J6 additions.</b> In the MVP: G1, G2, G3, G6, G14, G15, G16, G17, G19. Later: G4 (claims are tasks), G7–G8 (templates), G9 (bulk relocation), G10–G13 (shared workspaces, stage 2), G18 (no integrations in the MVP). G5 is decided in M5.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m5" open>
+    <summary>M5 · Required connections <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The connections that must work in the MVP, the ones Omniva derives itself, and how connections get made with low effort.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>M5.1 Relationship types:</b> essential in the MVP: <i>attached to, costs, covers, maintains, located at, replaces, involves, part of</i> (trip only), <i>related to</i>. Later: <i>results in</i> (Learning and Career not in the MVP). Two-way visibility and no silent cascading deletes from day one.</p>
+        <p><b>M5.2 Derived connections (rule-based, no AI), all included:</b> <b>indirect coverage (G5)</b>, "possibly covered, check your policy" via <i>covers</i> property → item <i>located at</i> property; overlapping cover; cost of ownership (states what it includes); trip checks (identity document vs trip dates, policy covering the traveller).</p>
+        <p><b>M5.3 Connection prompts are essential:</b> at creation ("Is this insurance for your car?", likely items suggested by type), at capture ("link to…"), and in the digest. Always suggestions the user confirms. Rejected: manual linking only. M8 candidate measure: <b>share of items with at least one link</b>.</p>
+        <p><b>M5.4 "Me" Person record:</b> every account has an automatic "Me" record in the People directory, so policies can cover the user and identity documents belong to them. Uses the existing Person block.</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m6" open>
+    <summary>M6 · Postponed &amp; excluded <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>Everything left out of the MVP in one place, the order it comes back, and the rule that stops it creeping in.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>Group</th><th>Not in the MVP (postponed, not rejected)</th></tr>
+          <tr><td>Journeys</td><td>Move, new baby, shared workspaces</td></tr>
+          <tr><td>Modules</td><td>Health, Career, Learning, Entertainment; deeper Finance (accounts, net worth, budgets); deeper Home (maintenance schedules, shopping lists); deeper Social (important dates, gift ideas, contact import)</td></tr>
+          <tr><td>Capabilities</td><td>AI (all levels), Vault, document-text search, Measurement, push notifications, native mobile, calendar-file import, cloud drives, bank import, any integration, Arabic interface</td></tr>
+          <tr><td>J6 additions</td><td>Claim template, reusable and record-based templates, bulk relocation, shared costs, task assignment, several Owners, leaving with copies, "last updated" labels</td></tr>
+          <tr><td>Connections</td><td><i>results in</i></td></tr>
+        </table></div>
+        <p style="margin-top:12px"><b>M6.2 Default order after the MVP</b> (validation can change it):</p>
+        <div class="tablewrap"><table>
+          <tr><th>Wave</th><th>Contents</th><th>Why</th></tr>
+          <tr><td>1. Strengthen the core (stage 1)</td><td>Document-text search; opt-in AI extraction (L1); important dates in People; claim template and reusable checklists</td><td>Depth before breadth</td></tr>
+          <tr><td>2. Conditional pull-ins</td><td>Move journey (if transitions bring people in); shared workspaces (if couples ask strongly)</td><td>Approved conditional triggers</td></tr>
+          <tr><td>3. Before public launch (stage 2)</td><td>Vault; native mobile with push; Arabic; calendar import and cloud drives; shared workspaces if not already in</td><td>Approved stage-2 placements</td></tr>
+          <tr><td>4. Expanded life (stage 2+)</td><td>Travel depth, basic Health, Career, Social depth; bank import (region-dependent)</td><td>Approved 7.3 sequence</td></tr>
+        </table></div>
+        <p><b>M6.3 Scope guard:</b> anything on the not-in-MVP list enters the MVP only through a documented decision in the decision log that names what it replaces or why the MVP can absorb it (the boundary-change rule applied at MVP level).</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m7" open>
+    <summary>M7 · Assumptions to validate <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>The assumptions the MVP rests on, ranked by risk and centrality, and how each is tested. Thresholds are set in M8.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <div class="tablewrap" style="margin-top:8px"><table>
+          <tr><th>#</th><th>Hypothesis (riskiest first)</th><th>How it's tested</th></tr>
+          <tr><td>H1</td><td>Connection value: people value connected records more than a tidy list</td><td>Concierge test; share of linked items and item-page visits in the MVP; interview "aha" moments</td></tr>
+          <tr><td>H2</td><td>Return without engagement tricks: a calm digest brings people back</td><td>Monthly return rate, digest opens and actions</td></tr>
+          <tr><td>H3</td><td>The problem is real for self-organizers</td><td>Problem interviews about past behaviour (missed renewal, lost warranty in the last 12 months)</td></tr>
+          <tr><td>H4</td><td>Capture is low-effort enough</td><td>Items added in week one, first-session completion, Inbox and forwarding use</td></tr>
+          <tr><td>H5</td><td>Trust without a Vault</td><td>Share uploading identity documents; interview hesitation</td></tr>
+          <tr><td>H6</td><td>Willingness to pay (freemium)</td><td>Landing page with pricing; beta conversations; pre-commitments</td></tr>
+          <tr><td>H7</td><td>Self-organizers are reachable</td><td>Landing page traffic from communities; waitlist conversion</td></tr>
+          <tr><td>H8</td><td>Which triggers bring people in</td><td>First-session trigger choice; interview stories (decides wave-2 pull-ins)</td></tr>
+          <tr><td>H9</td><td>Web-first capture is enough before native mobile</td><td>Capture share by channel; mobile drop-off</td></tr>
+          <tr><td>H10</td><td>Reliability holds (no missed or wrong reminders, no cross-account leaks)</td><td>Monitoring and testing in beta; every incident logged</td></tr>
+        </table></div>
+        <p>H1–H3 decide whether the direction holds; H4–H10 decide its shape.</p>
+        <p><b>M7.2 Sequence:</b> 1. problem interviews (15–20, Mom Test principles) and 2. landing page with pricing and waitlist, <b>both starting now, in parallel with the next stage</b>; 3. concierge test (5 people, 4–6 weeks) before the full MVP build; 4. MVP beta with 10–30 early adopters.</p>
+        <p><b>M7.3 Planned responses to failure:</b> H3 fails → revisit the entry segment from the approved shortlist (never the identity). H1 fails → revisit which connections and how they are shown (never become a reminder app without an explicit decision). H2 fails → revisit digest content, triggers and cadence (never add engagement tricks).</p>
+      </div>
+    </div>
+  </details>
+  <details class="block" id="m8" open>
+    <summary>M8 · Success criteria <span class="badge b-ok">Approved</span></summary>
+    <div class="body">
+      <p>Thresholds set in advance. They are starting values: interview results may adjust them before the beta, never after results arrive.</p>
+      <div class="approved">
+        <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+        <p style="margin-top:8px"><b>M8.1 Gates in order:</b> A. Founder use: relies on Omniva for 2 months and it catches at least one real deadline. B. Concierge test: at least 3 of 5 participants experience one area clearly helping another and would be worse off without it. C. MVP beta (10–30 people, about 3 months) against the criteria below.</p>
+        <div class="tablewrap"><table>
+          <tr><th>Type</th><th>Measure</th><th>Threshold</th><th>Tests</th></tr>
+          <tr><td><b>Hard gate</b></td><td>Reminders missed or wrong because of Omniva</td><td><b>Zero</b></td><td>H10</td></tr>
+          <tr><td><b>Hard gate</b></td><td>Data visible across accounts</td><td><b>Zero</b></td><td>H10</td></tr>
+          <tr><td>Core</td><td>Activation: 10+ items in the first week</td><td>≥ 60% of users</td><td>H4</td></tr>
+          <tr><td>Core</td><td>A useful reminder set within the first session (median ≤ 10 min)</td><td>≥ 80% of users</td><td>H4</td></tr>
+          <tr><td>Core</td><td>Connection: items with at least one link</td><td>≥ 50% of items</td><td>H1</td></tr>
+          <tr><td>Core</td><td>Return: monthly active at 3 months</td><td>≥ 40% of users</td><td>H2</td></tr>
+          <tr><td>Core</td><td>Nothing slips: at least one save (reminder acted on before a deadline) over 3 months</td><td>≥ 50% of active users</td><td>M1 proof</td></tr>
+          <tr><td>Signal</td><td>Willing to pay (stated price, pre-commitment)</td><td>5+ people</td><td>H6</td></tr>
+          <tr><td>Signal</td><td>Identity document uploaded</td><td>Observed</td><td>H5</td></tr>
+          <tr><td>Signal</td><td>First-session trigger chosen; capture by channel</td><td>Observed</td><td>H8, H9</td></tr>
+        </table></div>
+        <p><b>M8.3 Decision rule:</b> any hard gate fails → stop and fix first. 4–5 core criteria pass → move toward stage 2 (wave 3, before public launch). 2–3 pass → iterate with the M7.3 responses and re-run. 0–1 pass → revisit M1 and the MVP shape, never the identity.</p>
+        <p><b>M8.4 Not success measures:</b> time in app, daily active users, session counts (for a calm, episodic product high engagement can be a warning sign). Sign-up counts are vanity until activation holds.</p>
+      </div>
+    </div>
+  </details>
+</section>
+
+<section class="area" id="log">
+  <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
+  <div class="tablewrap"><table id="t-log"><tr><th>Date</th><th>Topic</th><th>Decision</th></tr><tr><td>24 Nov 2026</td><td>S1 Platform structure</td><td>Layered hybrid (Option C): Foundation, Core Building Blocks, Life Modules (12), Cross-Life Experiences.</td></tr>
+<tr><td>24 Nov 2026</td><td>S1 Items and modules</td><td>One canonical home module per item, visible in other modules. One source of truth, no duplicated records.</td></tr>
+<tr><td>24 Nov 2026</td><td>S1 Custom item types</td><td>Created inside the module where they belong, with a general fallback area. Always built on the shared building blocks.</td></tr>
+<tr><td>24 Nov 2026</td><td>S1 Foundation clarification</td><td>Privacy, identity, permissions and sharing belong to the Foundation. The E2EE Vault is not approved as a capability. Personal Analytics and Automation placement are pending S3.</td></tr>
+<tr><td>24 Nov 2026</td><td>S2 Building blocks</td><td>Ten blocks: Item, Document, Money record, Obligation, Event, Task, Person, Note, Plan, Measurement (the last in the long-term set; timing is an MVP question).</td></tr>
+<tr><td>24 Nov 2026</td><td>S2 Tasks vs reminders</td><td>Task is a block. Reminders are a shared capability attached to any key date.</td></tr>
+<tr><td>24 Nov 2026</td><td>S2 Shared anatomy</td><td>Title &amp; type, home module, workspace &amp; owner, universal key dates, status, links, attachments, tags &amp; custom fields, history.</td></tr>
+<tr><td>24 Nov 2026</td><td>S4 Modules 1–6</td><td>Light habits without gamification. Finance uses the "money connected to life" model. Health excluded from AI and Insights by default. Certificates live in Career. Light application tracking. Asset lifecycle includes disposal.</td></tr>
+<tr><td>24 Nov 2026</td><td>S4 Modules 7–12</td><td>Social is the home of every Person, with consent rules for information about others. Trips are built on Plans, with rule-based document checks. A property's home is Home Management, and utilities live in Home. Insurance lives in Subscriptions, which also has an All recurring commitments view. Documents is the home of all files (no folder tree). Entertainment has a light private log.</td></tr>
+<tr><td>24 Nov 2026</td><td>S5 Relationships</td><td>Named relationship types plus "related to". Links are two-way, stay within one workspace, and Plans group things through "part of". No silent cascading deletes.</td></tr>
+<tr><td>24 Nov 2026</td><td>S6 Integrations</td><td>Opt-in, read-only, revocable, never blocking the core, region-dependent where relevant. Catalogue with stages.</td></tr>
+<tr><td>24 Nov 2026</td><td>S7 Dependencies</td><td>Key dates and reminders, Documents, a basic People directory, Obligations and Money records come first. AI depends on everything, and nothing depends on it.</td></tr>
+<tr><td>24 Nov 2026</td><td>S8 Scope horizons</td><td>Committed long-term scope, possible future capabilities and not-pursued items defined. Managed profiles concept approved, with details later.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3b Activity Timeline</td><td>Two concepts: an Activity Timeline (changes and actions, within permissions) and a Security log (owner only). Record changes, never views.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3b Automation</td><td>Behind-the-scenes shared capability. Built-in smart behaviours, visible and undoable. Configurable rules are a possible future item (S8).</td></tr>
+<tr><td>24 Nov 2026</td><td>S3b Insights</td><td>Embedded in context, plus summaries in the Overview and digest. No separate analytics area. Informational only.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3b AI Assistant</td><td>Embedded first, with an optional Ask interface that cites records. Can be switched off entirely, and Omniva stays fully functional.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3b E2EE Vault</td><td>In long-term scope, limited: optional, files and notes only, per-item choice of visible title and dates, mandatory recovery key, honest limits.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3a Life Overview</td><td>Attention-first, with light customization (hide or reorder area cards).</td></tr>
+<tr><td>24 Nov 2026</td><td>S3a Unified Calendar</td><td>Events and key dates together, visually distinct, filterable, across all workspaces within permissions.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3a Universal Search</td><td>Across all blocks and workspaces within permissions. Text inside documents is in long-term scope.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3a Reminders</td><td>Smart defaults, delivered calmly: urgent ones notify directly, others go to the digest.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3a Capture</td><td>Quick add, templates, upload, email forwarding, bulk import, plus a capture Inbox.</td></tr>
+<tr><td>24 Nov 2026</td><td>S3a Export</td><td>Confirmed as a shared capability covering all blocks and modules.</td></tr>
+<tr><td>24 Nov 2026</td><td>S2 Visibility</td><td>Block names are mostly invisible to users. Interface wording is decided during the journeys.</td></tr>
+<tr><td>24 Nov 2026</td><td>S2 Passport clarification</td><td>A passport is an Identity document with its home in Documents &amp; Files (scan attached, expiry as a key date), not an Item. Resolves a conflict between the S2 examples and S4.</td></tr>
+<tr><td>24 Nov 2026</td><td>J1 Personas</td><td>Four thin, situation-based personas labelled as hypotheses: self-organizer, person in transition (expats as variant), couple building a shared life (with the less-engaged partner role), person carrying others (long-term, stage 3).</td></tr>
+<tr><td>24 Nov 2026</td><td>J1 Journey format</td><td>Narrative plus structured breakdown, including the status quo, connections that make the difference, value-timeline placement, effort and failure risks, and gaps for J6. No UI flows.</td></tr>
+<tr><td>24 Nov 2026</td><td>J2.1 First session</td><td>Trigger-led life inventory: optional trigger question, 5–8 tailored prompts asking for the thing and one key date, visible default reminders, natural-language connection offers. Document upload optional in the first session.</td></tr>
+<tr><td>24 Nov 2026</td><td>J2.2 First weeks</td><td>Calm digest as the return path. Connection-driven suggestions, at most 1–2 per digest, switchable off. No completeness scores. Missing key date sent to J6 as a gap.</td></tr>
+<tr><td>24 Nov 2026</td><td>J2.3 Capture</td><td>Mobile browser and email forwarding in stage 1. Optional "link to…" and "is there a date?" hints, otherwise the Inbox. Simple rule-based suggestions. Rule-based matching sent to J6.</td></tr>
+<tr><td>24 Nov 2026</td><td>J2.4 Finding things</td><td>Search plus the connected item page as the hub. Results show the item with its attachments. Saved smart views.</td></tr>
+<tr><td>24 Nov 2026</td><td>J2.5 Digest</td><td>Weekly by default, adjustable. Actionable entries, renewal decisions, quiet-week message (optional). No separate weekly-review feature.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.0 Signature journeys</td><td>Six journeys in order: car, something breaks, renewal season, trip, move, new baby (long-term). Tax season and a standalone health episode not now.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.1 Car journey</td><td>Works in fragments over time. Essentials first, rest prompted later. Cost-of-ownership honesty sent to J6. Mileage service noted for M3.</td></tr>
+<tr><td>24 Nov 2026</td><td>M8 Success criteria</td><td>Gates: founder use, concierge test, beta. Hard gates: zero missed or wrong reminders, zero cross-account exposure. Core: activation 60%, first-session reminder 80%, linked items 50%, monthly return 40%, a save for 50%. Decision rule set. Engagement time is not a success measure. Product Definition complete.</td></tr>
+<tr><td>24 Nov 2026</td><td>M7 Assumptions</td><td>Ten hypotheses ranked (connection value, return, problem reality first). Interviews and landing page start in parallel with the next stage; concierge test before the build; beta after. Planned responses to failure that never touch the identity or add engagement tricks.</td></tr>
+<tr><td>24 Nov 2026</td><td>M6 Postponed &amp; excluded</td><td>Consolidated not-in-MVP list (postponed, not rejected). Four waves after the MVP: strengthen the core, conditional pull-ins, before public launch, expanded life. Scope guard rule.</td></tr>
+<tr><td>24 Nov 2026</td><td>M5 Required connections</td><td>All relationship types except "results in". Indirect coverage, overlapping cover, cost of ownership and trip checks derived by rules. Connection prompts essential. Automatic "Me" Person record.</td></tr>
+<tr><td>24 Nov 2026</td><td>M4 Foundational capabilities</td><td>Personal workspace only; spreadsheet import; read-only calendar feed; built-in automation; basic Activity Timeline; Overview, Calendar, Search essential; light Insights. No AI (L0), no Vault, no wording implying E2EE. J6 additions split between MVP and later.</td></tr>
+<tr><td>24 Nov 2026</td><td>M3 Modules &amp; depth</td><td>Full: Documents, Assets, Subscriptions. Light: Finance (costs on things), Home (property as a place), Productivity (tasks), Travel (trip). Minimal: People directory. Not in MVP: Health, Career, Learning, Entertainment. No Measurement; no document-text search.</td></tr>
+<tr><td>24 Nov 2026</td><td>M2 Essential journeys</td><td>Seven essential: first session, reminders and digest, capture, finding, renewal season, car, something breaks. Trip light. Move, new baby and shared workspaces later. Reliability cases essential. Four first-session triggers.</td></tr>
+<tr><td>24 Nov 2026</td><td>M1 Target users &amp; problem</td><td>MVP assumes self-organizers, with life transitions as triggers. Problem: organized by hand, scattered, nothing warns, things slip. Proofs: nothing slips; found in seconds with everything related. Region-neutral, English first.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.3 Renewal season</td><td>All recurring commitments with totals; reminders by type (trials, annual, price changes; monthly none by default); "ask, never assume" made cross-cutting; service catalog without prices.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.4 Trip</td><td>Trip from a forwarded booking; rule-based document and cover checks; reusable checklists; no destination rules database; companions checked only if in the user's workspace.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.5 Move</td><td>Move Plan; notice deadline from the lease; generated "who has my address?" list; bulk relocation of items; deposit tracked as an expected amount.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.6 New baby</td><td>Long-term reference journey for managed profiles, Health and sharing. No built-in medical schedules.</td></tr>
+<tr><td>24 Nov 2026</td><td>J4 Shared workspaces</td><td>Several Owners allowed; co-owner suggested for couples; shared-cost split with "your share", no settle-up ledger; task assignment; instant leaving with copies except the other member's identity documents and private records.</td></tr>
+<tr><td>24 Nov 2026</td><td>J5 Edge cases</td><td>Reminders persist in the attention list; date plausibility; date missing; auto-roll only for auto-renewing commitments; duplicates suggested; recovery with waiting period; stale-data labels; honest limits on legacy access.</td></tr>
+<tr><td>24 Nov 2026</td><td>J6 Scope gaps</td><td>G1–G19 added or clarified in scope; settle-up ledger, destination rules, medical schedules and stored prices not pursued. User-facing wording set. Area 2 complete.</td></tr>
+<tr><td>24 Nov 2026</td><td>J3.2 Something breaks</td><td>Item page answers "is it covered?"; Omniva prepares, never files claims. Claims tracked as tasks for now. Claim template, indirect coverage and item-level document download sent to J6.</td></tr>
+<tr><td>24 Nov 2026</td><td>S4 Disposal clarification</td><td>Replaces "disposal closes linked warranties, insurance and reminders": Omniva asks about each linked obligation and marks it ended only on user confirmation. Warranties end with the item. Reason: Omniva cannot cancel real policies, and assuming would break "reliable above all".</td></tr>
+<tr><td>24 Nov 2026</td><td>J1 Qualifying criteria</td><td>At least two modules or blocks, a nameable status-quo failure, a real persona trigger. Tagged episodic / recurring / daily. No forced module coverage.</td></tr></table></div>
+</section>
+
+<section class="area" id="open">
+  <div class="areahead"><div class="eyebrow">Records</div><h2>Open items carried from Product Vision</h2></div>
+  <div class="tablewrap"><table>
+    <tr><th>Item</th><th>Status</th></tr>
+    <tr><td>Definition of the Activity Timeline</td><td><span class="badge b-ok">Resolved in S3b</span></td></tr>
+    <tr><td>Consent rules for information about other people</td><td><span class="badge b-ok">Resolved in S4 (Social)</span></td></tr>
+    <tr><td>Managed profiles</td><td><span class="badge b-ok">Concept resolved in S8</span> Detailed rules are still open for specification</td></tr>
+    <tr><td>Regional availability of Connect integrations</td><td><span class="badge b-pend">Partly open</span> Rules set in S6. Specific availability depends on the entry region.</td></tr>
+    <tr><td>Entry segment and entry region</td><td><span class="badge b-pend">MVP assumption set in M1</span> Self-organizers, region-neutral English first; final choice after validation</td></tr>
+    <tr><td>Pricing details</td><td><span class="badge b-idle">Open</span> Outside this stage</td></tr>
+    <tr><td>Missing key date (gap from J2.1)</td><td><span class="badge b-ok">Resolved in J6</span> G1</td></tr>
+    <tr><td>Rule-based matching at capture (gap from J2.3)</td><td><span class="badge b-ok">Resolved in J6</span> G2</td></tr>
+    <tr><td>Insights state what they include (gap from J3.1)</td><td><span class="badge b-ok">Resolved in J6</span> G3</td></tr>
+    <tr><td>Claim template; indirect coverage; item-level document download (gaps from J3.2)</td><td><span class="badge b-ok">Resolved in J6</span> G4–G6</td></tr>
+    <tr><td>Shared costs between partners</td><td><span class="badge b-ok">Resolved in J4.3 / J6</span> G10</td></tr>
+    <tr><td>Measurement timing for mileage-based service (J3.1)</td><td><span class="badge b-ok">Resolved in M3</span> Not in the MVP</td></tr>
+    <tr><td>User-facing wording (block names, "Insights", "Plan")</td><td><span class="badge b-ok">Resolved in J6</span> Arabic equivalents in specification</td></tr>
+    <tr><td>MVP timing of every J6 addition</td><td><span class="badge b-idle">Open</span> Area 3 (M3–M6)</td></tr>
+  </table></div>
+</section>
+</main>
+</div>
+
+<script>
+const S={ok:["b-ok","Approved"],pend:["b-pend","In discussion"],idle:["b-idle","Not started"]};
+const topics={
+ "t-scope":[
+  ["S1","Platform structure","Layers, what a module is, and how items relate to modules","ok"],
+  ["S2","Core building blocks","The shared types every module builds on","ok"],
+  ["S3","Shared platform capabilities","S3a: overview, calendar, search, reminders, capture, export · S3b: timeline, automation, insights, AI, Vault","ok"],
+  ["S4","Module responsibilities","What each of the 12 modules is responsible for","ok"],
+  ["S5","Cross-module relationships","Relationship types, link rules, and the connection map","ok"],
+  ["S6","External integrations","Catalogue of Connect-zone integrations, stages and rules","ok"],
+  ["S7","Dependencies","What depends on what, between modules and shared capabilities","ok"],
+  ["S8","Long-term product vs future capabilities","Committed scope, possible future capabilities, not pursued; managed profiles concept","ok"]],
+ "t-journeys":[
+  ["J1","Journey framework & personas","Personas from the primary profile and entry segments; journey format","ok"],
+  ["J2","Foundational journeys","First session, capture, finding things, weekly review","ok"],
+  ["J3","Cross-module signature journeys","Car, move, trip, new baby, and other validated situations","ok"],
+  ["J4","Shared workspace journeys","Couples and households: setting up, shared costs, leaving","ok"],
+  ["J5","Edge cases & failure scenarios","Lost access, wrong data, conflicts, sensitive situations","ok"],
+  ["J6","Scope gaps review","Capabilities the journeys reveal as missing, sent back to scope","ok"]],
+ "t-mvp":[
+  ["M1","Target users & primary problem","Entry segment assumption and the problem the MVP addresses","ok"],
+  ["M2","Essential journeys","Which journeys the MVP must support end to end","ok"],
+  ["M3","Modules & depth","Which modules exist and how deep each goes","ok"],
+  ["M4","Foundational capabilities","Shared capabilities the MVP cannot work without","ok"],
+  ["M5","Required connections","Cross-module links that prove the core value","ok"],
+  ["M6","Postponed & excluded","What waits, and what is explicitly out of the MVP","ok"],
+  ["M7","Assumptions to validate","Hypotheses and how each is tested","ok"],
+  ["M8","Success criteria","How we will know the MVP works","ok"]]
+};
+for(const [id,rows] of Object.entries(topics)){
+  const t=document.getElementById(id);
+  t.innerHTML="<tr><th>#</th><th>Topic</th><th>What it decides</th><th>Status</th></tr>"+
+   rows.map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td><span class="badge ${S[r[3]][0]}">${S[r[3]][1]}</span></td></tr>`).join("");
+}
+const all=Object.values(topics).flat();
+const count=k=>all.filter(r=>r[3]===k).length;
+document.getElementById("stats").innerHTML=
+ `<div class="stat"><b>3</b><span>Areas: Scope → Journeys → MVP</span></div>
+  <div class="stat"><b>${all.length}</b><span>Decision topics in total</span></div>
+  <div class="stat"><b>${count("ok")}</b><span>Topics approved</span></div>
+  <div class="stat"><b>${count("pend")}</b><span>Topics in discussion</span></div>`;
+
+const modules=[
+ ["Personal Productivity","Personal tasks, reminders, commitments, light goals and habits","External task and calendar apps","Team project management, time tracking, complex productivity methods"],
+ ["Finance & Wealth","Tracking accounts, assets, obligations, expenses, recurring costs; overviews, simple budgets, net worth","Bank data, investment platforms","Executing transactions, tax filing, professional financial advice"],
+ ["Health & Fitness","Health records, appointments, medications, logged metrics","Wearables and health apps","Diagnosis, medical advice, coaching programs, telemedicine"],
+ ["Knowledge & Learning","Courses, books, skills, learning goals; lightweight linked notes","Learning platforms, reading apps","Hosting courses; full note-taking / knowledge-management app"],
+ ["Career & Professional","CV, certificates, employment history, applications, professional contacts","Professional networks, job platforms","Job board, professional social network, business tools"],
+ ["Assets & Possessions","Inventory, value, warranties, maintenance, linked documents and costs","Insurance or valuation services (later)","Marketplace for buying or selling"],
+ ["Social & Relationships","Contacts, important dates, relationship notes, gift ideas, under privacy principles","Phone contacts, external calendars","Messaging, feeds, public profiles; surveillance or people-tracking; profiling others without consent"],
+ ["Travel & Experiences","Trips, itineraries, stored bookings, travel documents, trip budgets","Booking confirmations (email or import)","Booking engine, travel agency services"],
+ ["Home Management","Properties, maintenance, utilities, household tasks, shopping lists","Utility providers, smart-home data (later)","Smart-home control, landlord property management"],
+ ["Subscriptions & Services","Tracking, renewals, costs, linked accounts and documents","Bank data to detect subscriptions","Payment processing, negotiating with providers"],
+ ["Documents & Files","Storage, classification, expiry dates, search, links to everything","Cloud drives, email (import)","Full cloud-drive replacement, collaborative editing"],
+ ["Entertainment & Lifestyle","Watch, read and play lists, hobbies, events, memberships","Streaming and media services","Streaming or content delivery"]
+];
+document.getElementById("moduleCards").innerHTML=modules.map(m=>`
+ <div class="card"><h4>${m[0]}</h4>
+  <div class="zone"><span class="badge b-own">Own</span><p>${m[1]}</p></div>
+  <div class="zone"><span class="badge b-con">Connect</span><p>${m[2]}</p></div>
+  <div class="zone"><span class="badge b-out">Out of scope</span><p>${m[3]}</p></div>
+ </div>`).join("");
+
+const s4=[
+ ["Personal Productivity","Manage personal actions and commitments across every area of life.","Task (with subtasks and recurrence), Commitment (a task owed to a person), Goal, Habit","Tasks attach to any item. Goals link to Plans.","Light habits included, with no streaks, badges or guilt notifications."],
+ ["Finance & Wealth","Understand where money stands and where it goes across life.","Financial account (Item), Expense and income (Money record), Bill, loan and debt (Obligation), simple Budget, Net worth (Insight)","Costs of assets, obligations, trips and plans. Multi-currency throughout.","'Money connected to life' model. Detailed transaction history comes through import or Connect, with no feature race with budgeting apps."],
+ ["Health & Fitness","Keep health information organized, current and ready when needed.","Health record (Document), Appointment (Event), Medication, Vaccination, Condition and allergy, Measurement, Provider (Person)","Health costs and insurance link to Finance and Subscriptions. Appointments appear in the Calendar. Memberships show here from Subscriptions.","Excluded from AI and Insights by default, enabled only by an explicit choice. Records for dependants come with managed profiles."],
+ ["Knowledge & Learning","Track what you are learning and want to learn.","Course, Book and resource, Skill, Learning goal, lightweight Notes","Course costs link to Finance. Courses result in certificates. Learning goals link to Productivity.","Certificates live in Career, are linked to the course, and are visible in Learning."],
+ ["Career & Professional","Keep the records of your working life in one place.","Employment, Credential and certificate, CV (Document), Application, Professional contact (Person)","Contracts, payslips and work permits link to Documents. Income links to Finance. Credentials link to Learning.","Light application tracking only (company, role, status, dates, linked documents). No pipeline tooling."],
+ ["Assets & Possessions","Everything you own, across its whole lifecycle.","Vehicle, Electronics, Appliance, Furniture, Valuable, Collection item, plus custom types","Invoice and warranty link to Documents, cost to Finance, insurance to Subscriptions, maintenance to Tasks, mileage to Measurements.","The lifecycle includes disposal (sold, given away, discarded, with sale price). On disposal Omniva asks about each linked obligation (insurance, loans) and marks it ended only when the user confirms; until then its reminders stay active. Warranties end with the item. (Clarified 24 Nov 2026, J3.1.)"],
+ ["Social & Relationships","Remember and care for the people who matter.","Person, Important date, Relationship note, Gift idea","The <b>home of every Person</b> (people directory), referenced everywhere: doctors, landlords, mechanics. Gifts link to Finance.","Information about others: only what the user enters, for private use. No enrichment, scraping or AI profiling of other people. Contact import is selective. Removal requests are honoured where a person can be identified."],
+ ["Travel & Experiences","Plan trips and keep what matters about them together.","Trip (built on Plan), Itinerary item (Event), Booking, Trip budget, Places-to-go list (light)","Travel documents link to Documents, costs to Finance, companions to People.","Built-in, rule-based checks (no AI), for example a passport expiring within six months of the trip. A light wish list is included."],
+ ["Home Management","Run the place you live and everything that comes with it.","Property, Lease and mortgage, Utility (Obligation), Maintenance (Task), Shopping list (light), Service provider (Person)","Items are located at a property. Lease to Documents, costs to Finance, utilities shown in the Subscriptions overview.","A <b>property's home is Home Management</b>, visible in Assets and Finance. Utilities live in Home."],
+ ["Subscriptions & Services","Know every recurring commitment, what it costs and when it renews.","Subscription, Insurance policy, Membership, Service contract, Free trial","Insurance covers items and people. Costs link to Finance. Streaming links to Entertainment, gyms to Health.","Insurance's home is Subscriptions, visible on the insured item. Free trials are tracked. Includes an <b>All recurring commitments</b> view across modules (rent, loans, utilities)."],
+ ["Documents & Files","One library for every important file, connected to what it is about.","Document, Identity document (passport, ID, licence), Contract, Receipt and invoice, Certificate file","Attached to anything. Expiry dates feed reminders. Identity documents link to Travel checks.","The <b>home of all files</b>, attached and visible on related items. Organized by types, tags and smart views, with no folder tree."],
+ ["Entertainment & Lifestyle","Keep track of what you enjoy and want to enjoy.","Watch, read and play list item, private log with rating, Hobby, Event ticket","Memberships live in Subscriptions, collections in Assets, tickets in Documents and Calendar.","A light private log and ratings are included. No social sharing."]
+];
+document.getElementById("s4cards").innerHTML=s4.map(m=>`
+ <div class="card"><h4>${m[0]}</h4>
+  <p style="margin:0">${m[1]}</p>
+  <div class="zone"><b style="font-size:12px;color:var(--muted)">MAIN TYPES</b><p>${m[2]}</p></div>
+  <div class="zone"><b style="font-size:12px;color:var(--muted)">KEY CONNECTIONS</b><p>${m[3]}</p></div>
+  <div class="zone"><span class="badge b-ok">Decision</span><p>${m[4]}</p></div>
+ </div>`).join("");
+
+const mods=["Productivity","Finance","Health","Learning","Career","Assets","Social","Travel","Home","Subscriptions","Documents","Entertainment"];
+const strong=[[1,5],[1,9],[1,8],[1,7],[1,4],[1,10],[2,9],[2,10],[3,4],[4,10],[5,10],[5,9],[5,8],[5,0],[6,0],[7,10],[8,9],[8,10],[8,0],[9,10],[9,11]];
+const some=[[0,1],[0,2],[0,3],[0,4],[0,7],[0,9],[0,10],[0,11],[1,2],[1,3],[1,11],[1,6],[2,6],[3,10],[3,11],[4,6],[6,7],[6,8],[7,11],[7,0],[10,11],[2,0]];
+const cell=(a,b)=>{const has=l=>l.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));return a===b?"<td class='diag'></td>":has(strong)?"<td class='st' title='strong'>●</td>":has(some)?"<td class='so' title='common'>○</td>":"<td></td>";};
+document.getElementById("matrix").innerHTML="<tr><th></th>"+mods.map(m=>`<th class='rot'><span>${m}</span></th>`).join("")+"</tr>"+
+ mods.map((m,i)=>`<tr><th>${m}</th>${mods.map((_,j)=>cell(i,j)).join("")}</tr>`).join("");
+
+const blocks=()=>document.querySelectorAll("details.block");
+document.getElementById("expandAll").onclick=()=>blocks().forEach(d=>d.open=true);
+document.getElementById("collapseAll").onclick=()=>blocks().forEach(d=>d.open=false);
+
+const links=[...document.querySelectorAll("nav.side a")];
+const targets=links.map(a=>document.querySelector(a.getAttribute("href"))).filter(Boolean);
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+e.target.id));}})},{rootMargin:"-10% 0px -80% 0px"});
+targets.forEach(t=>obs.observe(t));
+</script>
+</body>
+</html>

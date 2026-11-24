@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omniva System Design</title>
+<style>
+/* Layout: fixed sidebar navigation + single content column; collapses to top nav on small screens */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#eef1f5; --fg:#16202c; --muted:#5a6676; --line:#dce1e8;
+  --accent:#2f5bd3; --accent-soft:#e6ecfb;
+  --ok:#1e7a4c; --ok-bg:#e2f3ea; --pend:#9a6300; --pend-bg:#fbefd4; --idle:#6b7684; --idle-bg:#eceff3;
+  --own:#2f5bd3; --own-bg:#e6ecfb; --con:#7a4fc4; --con-bg:#efe8fa; --out:#a33b3b; --out-bg:#f8e5e5;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#10151c; --surface:#171e27; --surface-2:#1e2732; --fg:#e5eaf0; --muted:#9aa6b4; --line:#2a3541;
+  --accent:#7ea2ff; --accent-soft:#1d2a47;
+  --ok:#6fd3a0; --ok-bg:#173326; --pend:#e8bd60; --pend-bg:#3a2d12; --idle:#8b96a3; --idle-bg:#232c37;
+  --own:#7ea2ff; --own-bg:#1d2a47; --con:#b99af0; --con-bg:#2a2140; --out:#ef8f8f; --out-bg:#3a1e1e;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55}
+a{color:var(--accent)}
+.app{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
+nav.side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:22px 16px}
+.brand{font-weight:700;font-size:18px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+nav.side ol{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+nav.side a{display:block;padding:6px 10px;border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+nav.side a.sub{padding-left:24px;color:var(--muted);font-size:13px}
+nav.side a:hover,nav.side a.active{background:var(--accent-soft);color:var(--accent)}
+nav.side .navlabel{margin:14px 10px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+main{padding:32px max(20px,4vw) 80px;max-width:1100px;width:100%}
+h1,h2,h3,h4{text-wrap:balance;letter-spacing:-.01em;margin:0}
+h1{font-size:30px} h2{font-size:23px} h3{font-size:17px} h4{font-size:15px}
+.lede{color:var(--muted);max-width:72ch;margin:8px 0 0}
+section.area{margin-top:44px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:20px}
+.areahead{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.b-ok{background:var(--ok-bg);color:var(--ok)} .b-pend{background:var(--pend-bg);color:var(--pend)} .b-idle{background:var(--idle-bg);color:var(--idle)}
+.b-own{background:var(--own-bg);color:var(--own)} .b-con{background:var(--con-bg);color:var(--con)} .b-out{background:var(--out-bg);color:var(--out)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:18px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:13px}
+details.block{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.block>summary{cursor:pointer;list-style:none;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600}
+details.block>summary::-webkit-details-marker{display:none}
+details.block>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+details.block[open]>summary::before{transform:rotate(90deg)}
+details.block>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+.body{padding:0 18px 18px;display:flex;flex-direction:column;gap:12px}
+.body p{margin:0;max-width:75ch}
+.body ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.proposed{border:1px dashed var(--pend);border-radius:10px;padding:14px 16px;background:var(--pend-bg)}
+.proposed .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--pend)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h4{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.zone{display:flex;flex-direction:column;gap:3px;font-size:13px}
+.zone .badge{align-self:flex-start}
+.zone p{margin:0;color:var(--muted)}
+/* Layer diagram */
+.layers{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px}
+.stack{display:flex;flex-direction:column;gap:8px}
+.layer{border-radius:10px;padding:10px 12px;border:1px solid var(--line);background:var(--surface-2)}
+.layer .lname{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:3px 9px;border-radius:6px;background:var(--surface);border:1px solid var(--line)}
+.chip.pending{border-style:dashed;border-color:var(--pend);color:var(--pend);background:var(--pend-bg)}
+.approved{border:1px solid var(--ok);border-radius:10px;padding:14px 16px;background:var(--ok-bg)}
+.approved .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ok)}
+.approved p,.proposed p{color:var(--fg)}
+.matrix{width:auto;font-size:12.5px}
+.matrix td,.matrix th{border:1px solid var(--line);text-align:center;padding:4px 6px;min-width:30px}
+.matrix th{text-transform:none;letter-spacing:0;color:var(--fg);font-weight:600;white-space:nowrap}
+.matrix th.rot{height:110px;vertical-align:bottom;padding:4px 2px}
+.matrix th.rot span{writing-mode:vertical-rl;transform:rotate(180deg);display:inline-block}
+.matrix td.st{color:var(--accent);font-weight:700;background:var(--accent-soft)}
+.matrix td.so{color:var(--muted)}
+.matrix td.diag{background:var(--surface-2)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.flow .step{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:13px}
+.flow .arr{color:var(--muted)}
+.l4{border-color:var(--accent)} .l4 .lname{color:var(--accent)}
+.integr{border-radius:10px;border:1px dashed var(--con);background:var(--con-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:12.5px;color:var(--con);font-weight:600;gap:6px}
+.integr .arrow{font-size:20px}
+@media (max-width:620px){.layers{grid-template-columns:1fr}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:8px 14px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+@media (max-width:880px){
+  .app{grid-template-columns:1fr}
+  nav.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  nav.side ol{flex-direction:row;flex-wrap:wrap}
+  nav.side a.sub,nav.side .navlabel{display:none}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}details.block>summary::before{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="side" aria-label="Document sections">
+  <div class="brand">Omniva<small>System Design</small></div>
+  <ol>
+    <li><a href="#overview">Overview &amp; status</a></li>
+    <li><a href="#framing">Framing</a></li>
+    <li class="navlabel">Design topics</li>
+    <li><a href="#topics">D1–D9</a></li>
+    <li class="navlabel">Records</li>
+    <li><a href="#log">Decision log</a></li>
+  </ol>
+</nav>
+<main>
+<section class="area" id="overview">
+  <div class="eyebrow">Living document · started 24 Nov 2026</div>
+  <h1>Omniva System Design</h1>
+  <p class="lede">How the approved Product Definition (<code>omniva-product-definition.html</code>) will be built. Domain language lives in <code>GLOSSARY.md</code>; hard-to-reverse decisions live as ADRs in <code>docs/adr/</code>. This page is the readable index. Approved decisions and pending proposals are labelled separately.</p>
+</section>
+
+<section class="area" id="framing">
+  <div class="areahead"><div class="eyebrow">Framing</div><h2>How System Design is run</h2><span class="badge b-ok">Approved</span></div>
+  <div class="approved">
+    <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Depth:</b> the MVP is designed in detail; the long-term product (sharing, Vault, native mobile, AI) only as <b>seams</b> that nothing in the MVP blocks.</li>
+      <li><b>Where decisions live:</b> <code>GLOSSARY.md</code> (domain language, no implementation detail), <code>docs/adr/</code> (decisions that are hard to reverse, surprising and a real trade-off), and this page as the index. The handoff tracks overall progress.</li>
+      <li><b>Method:</b> topics one at a time using the <code>domain-modeling</code> and <code>grilling</code> disciplines. <code>wayfinder</code> stays optional (user-invoked, needs an issue tracker).</li>
+      <li><b>Version control:</b> <code>F:\Omniva</code> is a git repository; remote <code>github.com/Mohaned178/Omniva</code>.</li>
+      <li><b>Constraints (default until the user says otherwise):</b> low running cost, a mainstream cloud host, EU-friendly data residency.</li>
+      <li><b>Pending:</b> who builds it and which languages or frameworks they know (asked again before D7).</li>
+    </ul>
+  </div>
+</section>
+
+<section class="area" id="topics">
+  <div class="areahead"><div class="eyebrow">Design topics</div><h2>D1–D9</h2><span class="badge b-pend">In discussion</span></div>
+  <p class="lede">Ordered by dependency. Technology (D7) is chosen to fit the design, not the reverse.</p>
+  <div class="tablewrap"><table>
+    <tr><th>#</th><th>Topic</th><th>Covers</th><th>Status</th></tr>
+    <tr><td>D1</td><td><b>Domain model &amp; glossary</b></td><td>Blocks, types, anatomy, relationships, workspace, ownership</td><td><span class="badge b-pend">In discussion</span></td></tr>
+    <tr><td>D2</td><td><b>Architecture shape &amp; boundaries</b></td><td>Overall structure, module boundaries</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D3</td><td><b>Tenancy, identity &amp; access</b></td><td>Workspace isolation, auth, permissions, moving items</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D9</td><td><b>API &amp; clients</b></td><td>Web app now, mobile later, versioning</td><td><span class="badge b-idle">Not started</span></td></tr>
+  </table></div>
+</section>
+
+<section class="area" id="log">
+  <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
+  <div class="tablewrap"><table id="t-log">
+    <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>Framing</td><td>MVP in detail, long-term as seams. GLOSSARY.md + docs/adr/ + this index. Git initialised, GitHub remote set. Default constraints: low cost, mainstream cloud, EU-friendly residency. Topic order D1–D9.</td></tr>
+  </table></div>
+</section>
+</main>
+</div>
+</body>
+</html>
