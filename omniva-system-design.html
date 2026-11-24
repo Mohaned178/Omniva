@@ -122,6 +122,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <li><a class="sub" href="#d2">D2 Architecture</a></li>
     <li><a class="sub" href="#d3">D3 Identity &amp; access</a></li>
     <li><a class="sub" href="#d4">D4 Data modelling</a></li>
+    <li><a class="sub" href="#d5">D5 Platform services</a></li>
     <li class="navlabel">Records</li>
     <li><a href="#log">Decision log</a></li>
   </ol>
@@ -157,8 +158,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <tr><td>D2</td><td><b>Architecture shape &amp; boundaries</b></td><td>Overall structure, module boundaries</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D3</td><td><b>Tenancy, identity &amp; access</b></td><td>Workspace isolation, auth, permissions, moving items</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-ok">Approved</span></td></tr>
-    <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-pend">In discussion</span></td></tr>
-    <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-ok">Approved</span></td></tr>
+    <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-pend">In discussion</span></td></tr>
     <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D9</td><td><b>API &amp; clients</b></td><td>Web app now, mobile later, versioning</td><td><span class="badge b-idle">Not started</span></td></tr>
@@ -247,10 +248,29 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </section>
 
+<section class="area" id="d5">
+  <div class="areahead"><div class="eyebrow">D5</div><h2>Core platform services</h2><span class="badge b-ok">Approved</span></div>
+  <div class="approved">
+    <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Reminders:</b> derived schedule of due notices, checked every minute, idempotent sends, daily reconciliation with alerts (<a href="docs/adr/0012-reminder-delivery-guarantees.md">ADR 0012</a>).</li>
+      <li><b>Delivery and digest:</b> in-app and email via a transactional provider; bounces and failures tracked and shown; weekly digest in the user's time zone, respecting quiet hours; reminders stay in the Overview until handled.</li>
+      <li><b>Email forwarding:</b> private random address per user, changeable; mail becomes a Capture with files and rule-based suggestions; accepted only from the user's verified sender addresses.</li>
+      <li><b>Files:</b> separate encrypted file storage, short-lived download links, malware scanning, size limits per plan, image and PDF previews, originals kept.</li>
+      <li><b>Search:</b> the database's built-in full-text search; indexes titles, types, tags, fields and linked records' titles; workspace-filtered; includes Captures.</li>
+      <li><b>Spreadsheet import:</b> CSV or Excel → column matching to a Type → preview → one batch, undoable as a whole, one timeline entry.</li>
+      <li><b>Calendar feed:</b> off by default with a plain-language note on what leaves Omniva; minimal titles by default, full titles optional; secret, revocable link.</li>
+      <li><b>Export:</b> one ZIP with re-importable JSON, CSV per Type, original files and a README; prepared in the background; expiring link; re-authentication.</li>
+      <li><b>Automation and Insights:</b> worker-run on change notifications; deterministic rules; automatic changes shown "by Omniva" and undoable.</li>
+    </ul>
+  </div>
+</section>
+
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D5 Platform services</td><td>Reminder guarantees (ADR 0012); tracked delivery and local-time digest; verified-sender email forwarding; separate encrypted file storage with scanning; built-in full-text search incl. linked titles; undoable batch import; calendar feed off by default with minimal titles; full ZIP export; deterministic, undoable automation.</td></tr>
     <tr><td>24 Nov 2026</td><td>D4 Data modelling</td><td>Hybrid field storage (ADR 0011); built-in Types in code, custom as data; one key-date collection; RRULE with 13-month window; integer money with recorded conversion rates; one link collection with same-workspace rule in the data; history by reference, purged on delete; random IDs.</td></tr>
     <tr><td>24 Nov 2026</td><td>D3 round 2</td><td>Public pages (home, features, how it works, pricing, privacy, FAQ, screenshots and videos) without an account; using the app requires sign-up or sign-in. No demo, no guest mode. D3 complete.</td></tr>
     <tr><td>24 Nov 2026</td><td>D3 round 1</td><td>Two-layer workspace isolation (ADR 0009); permission checks from day one; email and password with optional authenticator codes and passkeys, no social sign-in; recovery with 72-hour wait for lost second factor; device sessions and re-authentication; atomic record moves (seam); no routine staff access (ADR 0010). User added: public pages before sign-in (form pending).</td></tr>
