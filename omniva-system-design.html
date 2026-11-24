@@ -324,7 +324,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <li><b>Redis (or compatible Valkey)</b> for shared rate limiting, a secondary store for session lookups (PostgreSQL stays the source of truth) and a short-lived cache of non-personal data (<a href="docs/adr/0020-redis-for-rate-limits-sessions-and-cache.md">ADR 0020</a>).</li>
       <li><b>Jobs stay in PostgreSQL:</b> reminder schedule, change notifications and all background jobs remain on pg-boss.</li>
       <li><b>Rules:</b> no record content in Redis; every key expires; encrypted connections; EU only; Redis is disposable and the app keeps working without it.</li>
-      <li><b>Local:</b> Redis in Docker. <b>Provider:</b> pending confirmation (see below).</li>
+      <li><b>Local:</b> Redis in Docker. <b>Provider:</b> Render Key Value (Valkey), Frankfurt, on Render's private network; free instance for staging and beta (contents disposable), paid Starter (~$10/month) only if needed. Rejected: Upstash (region unconfirmed, public internet, extra vendor).</li>
     </ul>
   </div>
 </section>
@@ -368,7 +368,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
-    <tr><td>24 Nov 2026</td><td>D7 round 4 (Redis)</td><td>User reversed "no separate store": Redis for rate limiting, session secondary store and non-personal cache; jobs stay on pg-boss in PostgreSQL; no record content in Redis, keys expire, disposable (ADR 0020). Provider pending confirmation.</td></tr>
+    <tr><td>24 Nov 2026</td><td>D7 round 4 (Redis)</td><td>User reversed "no separate store": Redis for rate limiting, session secondary store and non-personal cache; jobs stay on pg-boss in PostgreSQL; no record content in Redis, keys expire, disposable (ADR 0020). Provider: Render Key Value, Frankfurt, free instance (ADR 0017 updated).</td></tr>
     <tr><td>24 Nov 2026</td><td>D9 API &amp; clients</td><td>REST + OpenAPI with generated typed client; /v1 additive versioning; Next.js server holds no user data (ADR 0019); cookie sessions with CSRF protection; TanStack Query, React Hook Form, shadcn/ui; Arabic-ready i18n; responsive mobile web; WCAG 2.2 AA. <b>System Design complete.</b></td></tr>
     <tr><td>24 Nov 2026</td><td>D8 Reliability &amp; testing</td><td>Unit, real-database integration and end-to-end tests; build-blocking isolation suite (ADR 0018); clock-controlled reminder tests; GitHub Actions with manual production promote; real data only in production; reminder alerts; expand–contract migrations; honest incident handling; monthly automated restore drill.</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 3</td><td>Local Docker and free staging; Neon Frankfurt (14-day history), Render Frankfurt, R2 EU, Mailgun EU, AWS KMS Frankfurt, ClamAV in worker, Sentry EU (ADR 0017). Beta about $55–80/month. D7 complete.</td></tr>
