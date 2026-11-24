@@ -120,6 +120,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <li><a href="#topics">D1–D9</a></li>
     <li><a class="sub" href="#d1">D1 Domain model</a></li>
     <li><a class="sub" href="#d2">D2 Architecture</a></li>
+    <li><a class="sub" href="#d3">D3 Identity &amp; access</a></li>
     <li class="navlabel">Records</li>
     <li><a href="#log">Decision log</a></li>
   </ol>
@@ -208,10 +209,31 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </section>
 
+<section class="area" id="d3">
+  <div class="areahead"><div class="eyebrow">D3</div><h2>Tenancy, identity &amp; access</h2><span class="badge b-pend">In discussion</span></div>
+  <div class="approved">
+    <div class="tag">Approved · Round 1 · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Isolation:</b> one shared database, workspace enforced in two independent layers (application gate and database), mandatory cross-workspace tests (<a href="docs/adr/0009-workspace-isolation-in-two-layers.md">ADR 0009</a>).</li>
+      <li><b>Permission checks from day one:</b> every action checks membership and role, even in the personal-only MVP; module- and item-level access slot in later.</li>
+      <li><b>Sign-in:</b> email and password, optional authenticator-app codes and passkeys; no social sign-in in the MVP; a proven authentication library or service, never custom security code.</li>
+      <li><b>Recovery:</b> password reset by email link with notification; lost second factor via recovery codes, otherwise an email reset with a 72-hour waiting period, announced everywhere and cancellable.</li>
+      <li><b>Sessions:</b> every device in the Security log, sign out one or all; re-authentication for full export, changing email, password or two-factor, and deleting the account.</li>
+      <li><b>Moving records (stage-2 seam):</b> a chosen set moves as one all-or-nothing operation, keeps identity, recorded in both timelines, cross-workspace links shown first.</li>
+      <li><b>Staff access:</b> none to user content by default; user-granted, time- and scope-limited support access in the Security log (<a href="docs/adr/0010-no-routine-staff-access-to-user-content.md">ADR 0010</a>).</li>
+    </ul>
+  </div>
+  <div class="proposed" style="margin-top:12px">
+    <div class="tag">In discussion · Public access before sign-in (user request)</div>
+    <p>Visitors can see the home page and other pages, and see what is inside the app, before signing in; signing up is required to actually use it. Exact form pending (see Q8).</p>
+  </div>
+</section>
+
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D3 round 1</td><td>Two-layer workspace isolation (ADR 0009); permission checks from day one; email and password with optional authenticator codes and passkeys, no social sign-in; recovery with 72-hour wait for lost second factor; device sessions and re-authentication; atomic record moves (seam); no routine staff access (ADR 0010). User added: public pages before sign-in (form pending).</td></tr>
     <tr><td>24 Nov 2026</td><td>D2 Architecture</td><td>Modular monolith plus worker (ADR 0006); capability modules; life modules as type packs (ADR 0007); records as source of truth with derived, rebuildable data and durable change notifications (ADR 0008).</td></tr>
     <tr><td>24 Nov 2026</td><td>D1 round 2</td><td>Archived vs lifecycle state; real deletion leaves no content (ADR 0004); recurrence for Obligations, Tasks, Events; per-record currency and workspace main currency; month-only and missing dates; Captures are not records (ADR 0005). D1 complete.</td></tr>
     <tr><td>24 Nov 2026</td><td>D1 round 1</td><td>Record vs Item; User, Member, Account; a Person per member per workspace; workspace ownership; Block → Type → Template; Event start as key date; projected vs recorded money, no paid state; Link vs Inferred connection; Holder; Plan home modules. ADRs 0001–0003.</td></tr>

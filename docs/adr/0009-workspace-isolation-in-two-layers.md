@@ -1,0 +1,3 @@
+# Workspace isolation in two independent layers on one shared database
+
+All workspaces share one database; every record carries its workspace, and isolation is enforced twice: every data access in the application goes through a workspace-scoped gate, and the database itself refuses rows from other workspaces. Automated cross-workspace isolation tests must pass on every change. We chose this over a database per workspace, which isolates more strongly but is costly to run and makes moving records between workspaces painful, because "zero cross-account data exposure" is a hard gate and one layer alone can fail silently.
