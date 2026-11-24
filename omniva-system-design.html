@@ -125,6 +125,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <li><a class="sub" href="#d5">D5 Platform services</a></li>
     <li><a class="sub" href="#d6">D6 Security &amp; privacy</a></li>
     <li><a class="sub" href="#d7">D7 Stack</a></li>
+    <li><a class="sub" href="#d8">D8 Reliability &amp; testing</a></li>
     <li class="navlabel">Records</li>
     <li><a href="#log">Decision log</a></li>
   </ol>
@@ -163,8 +164,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-ok">Approved</span></td></tr>
-    <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-pend">In discussion</span></td></tr>
-    <tr><td>D9</td><td><b>API &amp; clients</b></td><td>Web app now, mobile later, versioning</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-ok">Approved</span></td></tr>
+    <tr><td>D9</td><td><b>API &amp; clients</b></td><td>Web app now, mobile later, versioning</td><td><span class="badge b-pend">In discussion</span></td></tr>
   </table></div>
 </section>
 
@@ -318,10 +319,29 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </section>
 
+<section class="area" id="d8">
+  <div class="areahead"><div class="eyebrow">D8</div><h2>Reliability &amp; testing</h2><span class="badge b-ok">Approved</span></div>
+  <div class="approved">
+    <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Test layers:</b> test-first unit tests for domain rules; integration tests on a real PostgreSQL in Docker (never a mocked database); Playwright end-to-end tests for the 7 essential journeys and the light trip.</li>
+      <li><b>Isolation suite</b> blocks every build: cross-workspace calls on every endpoint, a database-level bypass test, and no endpoint without an isolation test (<a href="docs/adr/0018-isolation-tests-gate-every-build.md">ADR 0018</a>).</li>
+      <li><b>Reminder correctness:</b> controllable clock; daylight saving, month-only dates, leap years, time-zone moves, end-of-month recurrence, auto-roll vs expiry, quiet hours; property-based "sent exactly once" tests; reconciliation tested by corrupting the schedule.</li>
+      <li><b>CI:</b> GitHub Actions on every pull request (lint, types, unit, integration, isolation, end-to-end); red blocks merging; protected <code>main</code>; auto-deploy to staging; manual promote to production.</li>
+      <li><b>Environments:</b> local, staging (synthetic data only), production; real user data only in production.</li>
+      <li><b>Production watching:</b> reminder metrics (due, sent, failed, delayed); alerts on more than 5 minutes' delay, reconciliation differences, delivery-failure spikes; health checks; content-free logs.</li>
+      <li><b>Migrations:</b> forward-only, expand–contract, run before new code, rehearsed on staging, including hand-written isolation policies.</li>
+      <li><b>Incidents:</b> missed reminders and isolation failures logged as incidents, affected users told honestly, short write-up with cause and fix.</li>
+      <li><b>Monthly restore drill:</b> automated restore into a temporary Neon branch, counts and reminder sample checked, alert on failure.</li>
+    </ul>
+  </div>
+</section>
+
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D8 Reliability &amp; testing</td><td>Unit, real-database integration and end-to-end tests; build-blocking isolation suite (ADR 0018); clock-controlled reminder tests; GitHub Actions with manual production promote; real data only in production; reminder alerts; expand–contract migrations; honest incident handling; monthly automated restore drill.</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 3</td><td>Local Docker and free staging; Neon Frankfurt (14-day history), Render Frankfurt, R2 EU, Mailgun EU, AWS KMS Frankfurt, ClamAV in worker, Sentry EU (ADR 0017). Beta about $55–80/month. D7 complete.</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 2</td><td>Free until beta, small paid budget from beta. NestJS, Next.js, pnpm monorepo, Prisma (user choice), Zod, pg-boss, Better Auth (ADR 0016).</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 1</td><td>Builder: mostly AI agents. TypeScript and NestJS preferred. Budget $0–1/month (conflict raised). PostgreSQL only (ADR 0014); jobs queued in PostgreSQL (ADR 0015); managed EU services; no proprietary BaaS.</td></tr>
