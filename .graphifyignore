@@ -1,0 +1,9 @@
+# Files graphify should not scan
+node_modules/
+dist/
+build/
+.next/
+coverage/
+graphify-out/
+*.lock
+pnpm-lock.yaml

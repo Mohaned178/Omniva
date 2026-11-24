@@ -1,0 +1,2 @@
+# graphify output is rebuilt locally by every agent (`graphify update .`, AST-only, free)
+graphify-out/
