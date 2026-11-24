@@ -16,7 +16,7 @@
 5. Do not repeat completed discussions.
 6. Do not reopen approved decisions unless you find a genuine contradiction or a significant issue. If you do, raise it explicitly.
 7. Continue from the exact point where session 1 stopped (Section 1.3).
-8. **System Design is in progress** (moved there by the user on 24 Nov 2026). Continue from the next pending D topic in `omniva-system-design.html`. Read the relevant Matt Pocock skills in full before using them (Part F). The Section 1.2 discrepancy is resolved: S1–S8 stand as approved.
+8. **System Design is complete** (session 2). Development Planning (Part F) starts only when the user says so. It needs the user to run `/setup-matt-pocock-skills` first (issue tracker), then the user-invoked `/to-spec`, `/to-tickets`, `/implement` skills. Read each SKILL.md in full before use. The Section 1.2 discrepancy is resolved: S1–S8 stand as approved.
 9. Follow the working agreements in Section 2.
 10. Do not start System Design, development planning or implementation until the user explicitly moves the project to that stage.
 
@@ -33,7 +33,7 @@
 | Product Definition, Area 1: Product Scope (S1–S8) | **Approved** | S1 approved with user clarifications. S2: "approve all recommendations for S2". S3a and S3b approved. S4 Part 1, S4 Part 2 and S5–S8: user said "approve your recommendation for the rest… for area 1". |
 | Product Definition, Area 2: User Journeys & Use Cases (J1–J6) | **Approved** | Session 2. J1–J3.3 approved topic by topic (recommendations accepted). J3.4–J6 approved in bulk: "approve all recommendations for J3.3 and for the rest to J6". |
 | Product Definition, Area 3: MVP Definition (M1–M8) | **Approved** | Session 2, topic by topic (recommendations accepted). **Product Definition complete.** |
-| System Design | **In progress** | Started 24 Nov 2026 (session 2). Framing approved. D1–D8 approved; D9 next. Index: `omniva-system-design.html`. |
+| System Design | **Approved** | Session 2: framing + D1–D9, ADRs 0001–0019. Index: `omniva-system-design.html`. |
 | Development Planning | **Not started** | Methodology notes only (Part F) |
 | Implementation | **Not started** | Must not start during product discovery or definition |
 
@@ -54,10 +54,10 @@ The session 1 conversation records something different:
 The pasted instructions may have been written earlier, or in another tool (the user also reviews decisions with ChatGPT). **This document records the conversation's state, labels S4–S8 as approved through accepted recommendations, and asks the next session to confirm with the user.** If the user says the S2–S8 approvals don't stand, change their status to **Proposed** in both documents and re-present them one at a time, starting with S2.
 
 ### 1.3 Exact stopping point
-- Session 2 (24 Nov 2026) completed **Area 2 User Journeys (J1–J6)**, recorded in both documents. It also made two scope clarifications along the way (passport home; S4 disposal rule) and J6 amendments G1–G19.
-- **Product Definition complete** (Areas 1–3). Nothing further is pending in this stage.
-- **Next stage: System Design (Part E)**, only when the user explicitly moves the project there. In parallel, the user may start validation steps 1–2 (problem interviews, landing page), per M7.2.
-- Suggested first step for the next session: offer the user a short review of the bulk-approved J3.4–J6 items (especially G10 shared costs, G12 several Owners, G13 leaving with copies, G16 auto-roll, and the wording) before starting M1.
+- Session 2 (24 Nov 2026) completed Area 2 (Journeys), Area 3 (MVP) and the whole of **System Design** (framing, D1–D9, ADRs 0001–0019, `GLOSSARY.md`, `omniva-system-design.html`). All work is committed and pushed to `https://github.com/Mohaned178/Omniva` (branch `main`).
+- **Next stage: Development Planning**, only when the user says so. First step: the user runs `/setup-matt-pocock-skills` (GitHub Issues is now possible since the repo exists), then specs (`/to-spec`) and tracer-bullet tickets (`/to-tickets`), then implementation.
+- Parallel, any time: validation steps 1–2 (problem interviews, landing page) per M7.2.
+- Still worth a short user review: bulk-approved J3.4–J6 items (G10 shared costs, G12 several Owners, G13 leaving with copies, G16 auto-roll, wording).
 
 ### 1.4 Status vocabulary used in this document
 | Status | Meaning |
@@ -698,7 +698,7 @@ Order: Foundation → building blocks and anatomy (key dates) → shared capabil
 
 ---
 
-# Part E: System Design (**in progress**, started 24 Nov 2026)
+# Part E: System Design (**approved**, 24 Nov 2026)
 
 **Framing (Approved, recommendation accepted):** MVP in detail, long-term (sharing, Vault, native mobile, AI) as seams only · decisions in `GLOSSARY.md` + `docs/adr/` (ADR only if hard to reverse, surprising, real trade-off) + living index `omniva-system-design.html` · method: `domain-modeling` + `grilling` one topic at a time; `wayfinder` optional (user-invoked, needs tracker) · git initialised in `F:\Omniva`, remote `https://github.com/Mohaned178/Omniva.git` (**public** repo; the user confirmed on 24 Nov 2026 that it is public on purpose and authorized pushing) · default constraints: low running cost, mainstream cloud host, EU-friendly residency · **Answered in D7:** mostly AI agents; TypeScript + NestJS; budget $0–1/month.
 
@@ -723,7 +723,11 @@ Order: Foundation → building blocks and anatomy (key dates) → shared capabil
 
 **D7 round 3 (Approved, user said "yes to all"):** development local in Docker (PostgreSQL, MinIO, Mailpit), staging on free tiers with no real data ($0) · beta: Neon PostgreSQL Frankfurt with 14-day history window (Render PG rejected: 3–7 days) · Render Frankfurt for web, API, worker (~$7 each; Vercel rejected: non-commercial free plan) · Cloudflare R2 EU-jurisdiction bucket · Mailgun EU for send + inbound (Lettermint fallback) · AWS KMS Frankfurt, one master key + per-workspace data keys · ClamAV in worker (bigger worker) · Sentry EU + free uptime monitor alerting on failed reconciliation (ADR 0017). Estimated beta ~$55–80/month + domain; confirm prices at account setup. Neon is a US company (data in Frankfurt). **D7 complete.**
 
-**D8 (Approved, user said "yes to all"):** test-first unit tests for domain rules; integration tests on real PostgreSQL in Docker (no mocked DB); Playwright e2e for the 7 essential journeys + light trip · isolation suite blocks every build: cross-workspace calls on every endpoint, DB-level bypass test, no endpoint without isolation test (ADR 0018) · reminder tests with controllable clock (DST, month-only, leap years, time-zone moves, end-of-month, auto-roll vs expiry, quiet hours), property-based "sent exactly once", reconciliation tested by corruption · GitHub Actions on every PR (lint, types, unit, integration, isolation, e2e), red blocks merge, protected main, auto-deploy staging, manual promote to production · local / staging (synthetic only) / production; real data only in production · reminder metrics + alerts (>5 min delay, reconciliation diff, delivery failures), health checks · forward-only expand–contract migrations incl. isolation policies, rehearsed on staging · incidents logged, users told, write-ups · automated monthly restore drill into a temporary Neon branch. **D8 complete.** Next: D9 API & clients.
+**D8 (Approved, user said "yes to all"):** test-first unit tests for domain rules; integration tests on real PostgreSQL in Docker (no mocked DB); Playwright e2e for the 7 essential journeys + light trip · isolation suite blocks every build: cross-workspace calls on every endpoint, DB-level bypass test, no endpoint without isolation test (ADR 0018) · reminder tests with controllable clock (DST, month-only, leap years, time-zone moves, end-of-month, auto-roll vs expiry, quiet hours), property-based "sent exactly once", reconciliation tested by corruption · GitHub Actions on every PR (lint, types, unit, integration, isolation, e2e), red blocks merge, protected main, auto-deploy staging, manual promote to production · local / staging (synthetic only) / production; real data only in production · reminder metrics + alerts (>5 min delay, reconciliation diff, delivery failures), health checks · forward-only expand–contract migrations incl. isolation policies, rehearsed on staging · incidents logged, users told, write-ups · automated monthly restore drill into a temporary Neon branch. **D8 complete.**
+
+**D9 (Approved, user said "yes to all"):** REST + OpenAPI generated by NestJS, typed client generated for web/mobile, shared Zod inputs (GraphQL, tRPC rejected) · `/v1` versioning, additive changes only, older mobile versions supported for a set period · Next.js server never touches user data: public pages pre-rendered, app pages in browser via API only (ADR 0019) · Better Auth cookie sessions (secure, HTTP-only, subdomains, CSRF), tokens for mobile later · TanStack Query, React Hook Form + Zod, shadcn/ui on Radix + Tailwind · next-intl, direction-neutral styling, locale formatting (Arabic-ready) · responsive mobile web, camera capture, add to home screen, no offline · WCAG 2.2 AA checked with axe in e2e.
+
+**SYSTEM DESIGN COMPLETE (24 Nov 2026): D1–D9, ADRs 0001–0019, `GLOSSARY.md`, index `omniva-system-design.html`.** Next stage: Development Planning (Part F), only when the user says so.
 
 **Topic order (approved):** D1 Domain model & glossary → D2 Architecture shape & boundaries → D3 Tenancy, identity & access → D4 Data modelling → D5 Core platform services → D6 Security & privacy → D7 Technology stack & infrastructure → D8 Reliability & testing → D9 API & clients.
 
@@ -829,7 +833,7 @@ Skills found and what their headers say:
 | — | Managed profile details | Pending (specification) |
 | — | Specific integration providers per region | Pending |
 | — | User-facing wording | Approved in J6 (Arabic equivalents in specification) |
-| — | System Design | In progress (framing approved; D1 next) |
+| — | System Design | Approved (D1–D9, ADRs 0001–0019) |
 | — | Development Planning | Deferred (future stage) |
 
 **Explicitly rejected options (selection):** Life OS category · blank canvas · replace-only / connect-only · module-centric (A) and blocks-only (B) structures · reminders only inside tasks · dashboard-of-every-module and fully custom Overview · events-only calendar · user-set-only reminders · a combined activity stream · a user rule builder as core automation · a separate analytics area · chat-first AI · full transaction tracking · gamified habits · a folder tree for documents · general messaging · moving money · a plugin marketplace or developer platform · a desktop app · microservices (advised against in feasibility, not formally decided).
