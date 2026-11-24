@@ -123,6 +123,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <li><a class="sub" href="#d3">D3 Identity &amp; access</a></li>
     <li><a class="sub" href="#d4">D4 Data modelling</a></li>
     <li><a class="sub" href="#d5">D5 Platform services</a></li>
+    <li><a class="sub" href="#d6">D6 Security &amp; privacy</a></li>
     <li class="navlabel">Records</li>
     <li><a href="#log">Decision log</a></li>
   </ol>
@@ -159,8 +160,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <tr><td>D3</td><td><b>Tenancy, identity &amp; access</b></td><td>Workspace isolation, auth, permissions, moving items</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D4</td><td><b>Data modelling</b></td><td>Anatomy, custom fields, links, key dates, recurrence, money</td><td><span class="badge b-ok">Approved</span></td></tr>
     <tr><td>D5</td><td><b>Core platform services</b></td><td>Reminders, scheduling, digest, automation, timeline, search, files, import/export, email intake, calendar feed</td><td><span class="badge b-ok">Approved</span></td></tr>
-    <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-pend">In discussion</span></td></tr>
-    <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-idle">Not started</span></td></tr>
+    <tr><td>D6</td><td><b>Security &amp; privacy</b></td><td>Encryption, recovery, backups, deletion, compliance</td><td><span class="badge b-ok">Approved</span></td></tr>
+    <tr><td>D7</td><td><b>Technology stack &amp; infrastructure</b></td><td>Language, framework, database, hosting, deployment</td><td><span class="badge b-pend">In discussion</span></td></tr>
     <tr><td>D8</td><td><b>Reliability &amp; testing</b></td><td>Hard gates, observability, test strategy</td><td><span class="badge b-idle">Not started</span></td></tr>
     <tr><td>D9</td><td><b>API &amp; clients</b></td><td>Web app now, mobile later, versioning</td><td><span class="badge b-idle">Not started</span></td></tr>
   </table></div>
@@ -266,10 +267,29 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
 </section>
 
+<section class="area" id="d6">
+  <div class="areahead"><div class="eyebrow">D6</div><h2>Security &amp; privacy</h2><span class="badge b-ok">Approved</span></div>
+  <div class="approved">
+    <div class="tag">Approved · 24 Nov 2026 · Claude's recommendations accepted</div>
+    <ul style="margin-top:8px">
+      <li><b>Encryption:</b> in transit and at rest; plus per-workspace keys for files and designated sensitive fields, enabling crypto-shredding; not end-to-end and never described as such (<a href="docs/adr/0013-per-workspace-encryption-keys.md">ADR 0013</a>).</li>
+      <li><b>Backups:</b> daily encrypted, 14-day point-in-time recovery, same region, restores tested monthly.</li>
+      <li><b>Deletion:</b> immediate from live systems; account key destroyed so files and sensitive fields are unreadable in backups at once; everything else gone within 14 days; stated plainly in the privacy policy.</li>
+      <li><b>Region and compliance:</b> EU hosting; GDPR as the worldwide baseline; data-processing agreements and a public list of providers; no health data in the MVP.</li>
+      <li><b>Measurement:</b> first-party, aggregate, no record content; no third-party trackers or ad pixels in the app; cookie-free analytics on the public website.</li>
+      <li><b>Logs:</b> never contain user content; 30-day retention; error reports scrubbed.</li>
+      <li><b>Abuse protection:</b> rate limits on sign-in, sign-up, reset and email intake; lockout with notification; upload limits.</li>
+      <li><b>Process:</b> managed secrets store, never secrets in the (public) repository; dependency scanning; security review before beta; external penetration test before public launch.</li>
+      <li><b>Vault seam:</b> storage and encryption behind an interface separating key holder from byte location.</li>
+    </ul>
+  </div>
+</section>
+
 <section class="area" id="log">
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>24 Nov 2026</td><td>D6 Security &amp; privacy</td><td>Per-workspace keys and crypto-shredding (ADR 0013); 14-day backups with monthly restore tests; deletion timeline; EU hosting and GDPR baseline; content-free first-party measurement, no trackers; content-free logs; rate limits; secrets store, scanning, review before beta, pen test before launch; Vault seam.</td></tr>
     <tr><td>24 Nov 2026</td><td>D5 Platform services</td><td>Reminder guarantees (ADR 0012); tracked delivery and local-time digest; verified-sender email forwarding; separate encrypted file storage with scanning; built-in full-text search incl. linked titles; undoable batch import; calendar feed off by default with minimal titles; full ZIP export; deterministic, undoable automation.</td></tr>
     <tr><td>24 Nov 2026</td><td>D4 Data modelling</td><td>Hybrid field storage (ADR 0011); built-in Types in code, custom as data; one key-date collection; RRULE with 13-month window; integer money with recorded conversion rates; one link collection with same-workspace rule in the data; history by reference, purged on delete; random IDs.</td></tr>
     <tr><td>24 Nov 2026</td><td>D3 round 2</td><td>Public pages (home, features, how it works, pricing, privacy, FAQ, screenshots and videos) without an account; using the app requires sign-up or sign-in. No demo, no guest mode. D3 complete.</td></tr>

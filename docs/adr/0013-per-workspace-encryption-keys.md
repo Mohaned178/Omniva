@@ -1,0 +1,3 @@
+# Per-workspace encryption keys for files and sensitive fields
+
+On top of encryption in transit and at rest, files and designated sensitive fields (such as identity document and policy numbers) are encrypted by the application with a separate key per workspace, held in a managed key service. Destroying a workspace's key makes that data unreadable everywhere at once, including backups, which makes "deleting your data really deletes it" true within the backup window. We accept that these fields cannot be searched, so only truly sensitive fields are encrypted this way. This is not end-to-end encryption and must never be described as such.
