@@ -74,11 +74,22 @@ export class JobQueue implements OnModuleInit, OnModuleDestroy {
     return job?.state === 'completed';
   }
 
-  async work(queue: string, options: WorkOptions, handler: () => Promise<void>): Promise<void> {
+  /**
+   * Runs the handler for each job on the queue. Job data comes back from the database, so the
+   * handler receives it as `unknown` and parses it (CODING_STANDARDS �4). A handler that
+   * throws fails the job, and pg-boss retries it under the queue's policy.
+   */
+  async work(
+    queue: string,
+    options: WorkOptions,
+    handler: (data: unknown) => Promise<void>,
+  ): Promise<void> {
     await this.boss.work(
       queue,
       { pollingIntervalSeconds: options.pollingIntervalSeconds },
-      handler,
+      async (jobs) => {
+        for (const job of jobs) await handler(job.data);
+      },
     );
   }
 }

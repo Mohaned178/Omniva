@@ -14,6 +14,9 @@ const config = loadAppConfig({
   DATABASE_URL: 'postgresql://openapi@localhost/unused',
   REDIS_URL: 'redis://localhost/unused',
   WEB_ORIGIN: 'http://localhost',
+  API_PUBLIC_URL: 'http://localhost',
+  SMTP_URL: 'smtp://localhost',
+  AUTH_SECRET: 'openapi-generation-placeholder-secret-never-used',
 });
 const app = await NestFactory.create(ApiModule.forRoot(config), { logger: false });
 configureApi(app, config);
