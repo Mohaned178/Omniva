@@ -1,6 +1,6 @@
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import type { DynamicModule, INestApplication } from '@nestjs/common';
+import type { DynamicModule, INestApplication, Type } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { createApiClient, type ApiClient } from '@omniva/api-client';
 import type { OpenAPIObject } from '@nestjs/swagger';
@@ -9,6 +9,8 @@ import { configureApi } from '../../../src/configure-api.js';
 import { buildOpenApiDocument } from '../../../src/openapi/build-openapi-document.js';
 import type { AppConfig } from '../../../src/platform/config/app-config.js';
 import { Clock } from '../../../src/platform/clock/clock.js';
+import { DatabaseClient } from '../../../src/platform/database/database-client.js';
+import { ScopedDatabase } from '../../../src/platform/database/scoped-database.js';
 import { WorkerModule } from '../../../src/worker.module.js';
 import { ControllableClock } from './controllable-clock.js';
 import { MailCatcher } from './mail-catcher.js';
@@ -20,6 +22,8 @@ const HARNESS_START = new Date('2027-03-01T09:00:00.000Z');
 export interface HarnessOptions {
   /** Environment overrides, for example pointing Redis at an address where nothing listens. */
   readonly environment?: Readonly<Record<string, string>>;
+  /** Extra modules mounted in the API, such as test-only probe endpoints. */
+  readonly apiModules?: readonly Type[];
 }
 
 /**
@@ -42,11 +46,9 @@ export class OmnivaHarness {
     const clock = new ControllableClock(HARNESS_START);
     const config = testConfig(options.environment);
 
-    const apiApp = (await compileWithClock(ApiModule.forRoot(config), clock)).createNestApplication(
-      {
-        logger: false,
-      },
-    );
+    const apiApp = (
+      await compileWithClock([ApiModule.forRoot(config), ...(options.apiModules ?? [])], clock)
+    ).createNestApplication({ logger: false });
     configureApi(apiApp, config);
     await apiApp.listen(0, '127.0.0.1');
     const { port } = (apiApp.getHttpServer() as Server).address() as AddressInfo;
@@ -68,9 +70,22 @@ export class OmnivaHarness {
     return buildOpenApiDocument(this.apiApp);
   }
 
+  /**
+   * The API's own scoped database access, for tests that bypass the application gate to prove
+   * PostgreSQL refuses other workspaces' rows by itself (ADR 0018).
+   */
+  scopedDatabase(): ScopedDatabase {
+    return this.apiApp.get(ScopedDatabase);
+  }
+
+  /** The API's own database connection with no scope at all, as a forgetful query would use it. */
+  unscopedDatabase(): DatabaseClient {
+    return this.apiApp.get(DatabaseClient);
+  }
+
   async startWorker(): Promise<void> {
     if (this.worker) return;
-    const worker = await compileWithClock(WorkerModule.forRoot(this.config), this.clock);
+    const worker = await compileWithClock([WorkerModule.forRoot(this.config)], this.clock);
     worker.useLogger(false);
     await worker.init();
     this.worker = worker;
@@ -87,8 +102,11 @@ export class OmnivaHarness {
   }
 }
 
-function compileWithClock(rootModule: DynamicModule, clock: Clock): Promise<TestingModule> {
-  return Test.createTestingModule({ imports: [rootModule] })
+function compileWithClock(
+  modules: readonly (DynamicModule | Type)[],
+  clock: Clock,
+): Promise<TestingModule> {
+  return Test.createTestingModule({ imports: [...modules] })
     .overrideProvider(Clock)
     .useValue(clock)
     .compile();

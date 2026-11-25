@@ -1,6 +1,8 @@
 // Omniva database schema. Migrations are forward-only and expand–contract
 // (CODING_STANDARDS §6); row-level security policies live in hand-written SQL inside the
-// migration that adds each workspace-owned table (ADR 0009, ADR 0016).
+// migration that adds each workspace-owned table (ADR 0009, ADR 0016). The application acts as
+// the omniva_app role, which those policies always apply to (the application_database_role
+// migration); migrations run as the owner of the tables.
 
 generator client {
   provider     = "prisma-client"

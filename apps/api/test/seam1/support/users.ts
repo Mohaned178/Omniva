@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { CurrentSession } from '@omniva/schemas';
 import type { OmnivaHarness } from './omniva-harness.js';
 import type { Visitor } from './visitor.js';
 
@@ -33,4 +34,11 @@ export async function signedInUser(omniva: OmnivaHarness): Promise<Visitor> {
   const visitor = omniva.visitor();
   await visitor.api.POST('/v1/auth/sign-in', { body: { email, password: PASSWORD } });
   return visitor;
+}
+
+/** Who the signed-in user is, with their personal workspace and Me, as the API reports it. */
+export async function currentSessionOf(user: Visitor): Promise<CurrentSession> {
+  const { data } = await user.api.GET('/v1/session');
+  if (!data) throw new Error('The user is not signed in');
+  return data;
 }
