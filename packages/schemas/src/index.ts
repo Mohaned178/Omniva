@@ -5,11 +5,7 @@ export {
   type OverallStatus,
 } from './health/health-report.js';
 export { ApiErrorSchema, type ApiError } from './http/api-error.js';
-export {
-  CurrentSessionSchema,
-  type CurrentSession,
-  type MemberRole,
-} from './identity/current-session.js';
+export { CurrentSessionSchema, type CurrentSession } from './identity/current-session.js';
 export {
   EmailVerificationRequestSchema,
   type EmailVerificationRequest,
@@ -21,3 +17,5 @@ export {
   SignUpRequestSchema,
   type SignUpRequest,
 } from './identity/sign-up-request.js';
+export type { MemberRole } from './workspaces/member-role.js';
+export { WorkspaceSchema, type Workspace } from './workspaces/workspace.js';

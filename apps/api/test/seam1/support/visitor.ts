@@ -1,6 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { createApiClient, type ApiClient } from '@omniva/api-client';
 
+export interface RawRequest {
+  /** Values for the path's `{name}` placeholders. */
+  readonly params?: Readonly<Record<string, string>>;
+  readonly body?: unknown;
+}
+
 /**
  * Someone using Omniva from the web app, as a browser would: their cookies are kept between
  * requests and every request carries the web app's Origin header.
@@ -23,17 +29,21 @@ export class Visitor {
   }
 
   /**
-   * Calls any API path without the typed client, filling path parameters with ids that exist
-   * nowhere and sending an empty JSON body where the method takes one.
+   * Calls any API path without the typed client. Path parameters come from `params`, and any
+   * left out get ids that exist nowhere; the JSON body is `body`, or empty where the method
+   * takes one.
    */
-  async raw(method: string, path: string): Promise<Response> {
-    const url = new URL(path.replace(/\{[^}]+\}/g, randomUUID()), this.apiUrl);
+  async raw(method: string, path: string, request: RawRequest = {}): Promise<Response> {
+    const filledPath = path.replace(
+      /\{([^}]+)\}/g,
+      (_placeholder, name: string) => request.params?.[name] ?? randomUUID(),
+    );
     const hasBody = method.toLowerCase() !== 'get';
     return this.send(
-      new Request(url, {
+      new Request(new URL(filledPath, this.apiUrl), {
         method: method.toUpperCase(),
         headers: { 'Content-Type': 'application/json' },
-        ...(hasBody && { body: '{}' }),
+        ...(hasBody && { body: JSON.stringify(request.body ?? {}) }),
       }),
     );
   }

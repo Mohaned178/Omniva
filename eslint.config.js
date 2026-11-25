@@ -50,7 +50,7 @@ export default tseslint.config(
   },
   {
     // NestJS modules are classes that exist only to carry decorators.
-    files: ['apps/api/src/**/*.module.ts'],
+    files: ['apps/api/{src,test}/**/*.module.ts'],
     rules: { '@typescript-eslint/no-extraneous-class': 'off' },
   },
   ...nextCoreWebVitals.map((config) => ({ ...config, files: WEB_FILES })),

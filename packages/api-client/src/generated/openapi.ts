@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A workspace the user is a member of, with their role in it */
+        get: operations["getWorkspace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -155,6 +172,13 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+        };
+        Workspace: {
+            id: string;
+            /** @enum {string} */
+            kind: "personal" | "shared";
+            /** @enum {string} */
+            role: "owner" | "editor" | "viewer";
         };
     };
     responses: never;
@@ -339,6 +363,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthReport"];
+                };
+            };
+        };
+    };
+    getWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The workspace */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description No valid session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The workspace does not exist, or the user is not a member of it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

@@ -198,6 +198,58 @@
         ],
         "x-omniva-public": true
       }
+    },
+    "/v1/workspaces/{workspaceId}": {
+      "get": {
+        "operationId": "getWorkspace",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A workspace the user is a member of, with their role in it",
+        "tags": [
+          "workspaces"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      }
     }
   },
   "info": {
@@ -393,6 +445,35 @@
         "required": [
           "email",
           "password"
+        ],
+        "additionalProperties": false
+      },
+      "Workspace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "shared"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "role"
         ],
         "additionalProperties": false
       }

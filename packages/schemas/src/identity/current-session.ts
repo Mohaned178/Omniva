@@ -1,7 +1,5 @@
 import { z } from 'zod';
-
-const MemberRoleSchema = z.enum(['owner', 'editor', 'viewer']);
-export type MemberRole = z.infer<typeof MemberRoleSchema>;
+import { MemberRoleSchema } from '../workspaces/member-role.js';
 
 /** Who is signed in, and the personal workspace they land in. */
 export const CurrentSessionSchema = z
