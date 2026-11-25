@@ -1,15 +1,10 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 import type { Request } from 'express';
 import { AppConfig } from '../config/app-config.js';
-import { DomainError } from './domain-error.js';
+import { UntrustedOrigin } from './untrusted-origin.js';
 
 /** Reading never changes anything, so only these methods may come from anywhere. */
 const SAFE_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD', 'OPTIONS']);
-
-export class UntrustedOrigin extends DomainError {
-  readonly kind = 'forbidden';
-  readonly code = 'UNTRUSTED_ORIGIN';
-}
 
 /**
  * Cross-site request forgery protection for every /v1 endpoint: a request that changes

@@ -1,7 +1,7 @@
 import { applyDecorators, Body, type PipeTransform } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import type { z } from 'zod';
-import { InvalidInput } from './domain-error.js';
+import { InvalidInput } from './invalid-input.js';
 import { zodComponentRef } from './zod-openapi-components.js';
 
 /** Parses a request body with its shared Zod schema; anything else is invalid input (§4). */

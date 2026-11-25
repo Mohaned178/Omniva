@@ -37,12 +37,23 @@ export class ApiExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       return [status, { code: HttpStatus[status] ?? 'HTTP_ERROR', message: exception.message }];
     }
-    // Only the error's name and stack are logged: messages can quote user input (§7).
-    const error = exception instanceof Error ? exception : new Error('Unknown error');
-    this.logger.error(`Unhandled ${error.name}`, error.stack);
+    this.logger.error(`Unhandled ${errorName(exception)}`, stackFrames(exception));
     return [
       HttpStatus.INTERNAL_SERVER_ERROR,
       { code: 'INTERNAL_ERROR', message: 'Something went wrong on our side.' },
     ];
   }
+}
+
+function errorName(exception: unknown): string {
+  return exception instanceof Error ? exception.name : typeof exception;
+}
+
+/**
+ * The stack without its first line, which repeats the error's message: messages can quote
+ * user input, and logs carry technical detail only (CODING_STANDARDS §7).
+ */
+function stackFrames(exception: unknown): string | undefined {
+  if (!(exception instanceof Error) || exception.stack === undefined) return undefined;
+  return exception.stack.split('\n').slice(1).join('\n');
 }

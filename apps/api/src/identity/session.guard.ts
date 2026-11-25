@@ -2,7 +2,7 @@ import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import type { Response } from 'express';
 import { Authentication } from './authentication.js';
-import { SessionRequired } from './identity-errors.js';
+import { SessionRequired } from './errors/session-required.js';
 import { IS_PUBLIC } from './public.decorator.js';
 import { requestHeaders, type SignedInRequest } from './signed-in-request.js';
 

@@ -5,11 +5,9 @@ import { AppConfig } from '../platform/config/app-config.js';
 import { DatabaseClient } from '../platform/database/database-client.js';
 import { PersonalWorkspaces } from '../workspaces/personal-workspaces.js';
 import { type AuthEngine, createAuthEngine } from './auth-engine.js';
-import {
-  EmailNotVerified,
-  InvalidCredentials,
-  InvalidVerificationToken,
-} from './identity-errors.js';
+import { EmailNotVerified } from './errors/email-not-verified.js';
+import { InvalidCredentials } from './errors/invalid-credentials.js';
+import { InvalidVerificationToken } from './errors/invalid-verification-token.js';
 import { VerificationEmails } from './verification-email/verification-emails.js';
 
 /** Set-Cookie headers to pass on to the browser unchanged. */

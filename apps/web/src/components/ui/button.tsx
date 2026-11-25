@@ -1,26 +1,17 @@
 import type { ComponentProps } from 'react';
-import { cn } from '@/lib/utils';
+import { buttonClassName, type ButtonVariant } from './button-styles';
 
-const VARIANTS = {
-  primary: 'bg-foreground text-background',
-  outline: 'border',
-} as const;
-
-/** A button with the same look as ButtonLink, for actions rather than navigation. */
+/** A button for actions; it looks the same as ButtonLink. */
 export function Button({
   variant = 'primary',
   className,
   type = 'button',
   ...props
-}: ComponentProps<'button'> & { readonly variant?: keyof typeof VARIANTS }) {
+}: ComponentProps<'button'> & { readonly variant?: ButtonVariant }) {
   return (
     <button
       type={type}
-      className={cn(
-        'inline-block rounded-md px-4 py-2 font-medium disabled:opacity-60',
-        VARIANTS[variant],
-        className,
-      )}
+      className={buttonClassName(variant, `disabled:opacity-60 ${className ?? ''}`)}
       {...props}
     />
   );

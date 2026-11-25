@@ -1,6 +1,6 @@
 import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
 import type { SignedInUser } from './authentication.js';
-import { SessionRequired } from './identity-errors.js';
+import { SessionRequired } from './errors/session-required.js';
 import type { SignedInRequest } from './signed-in-request.js';
 
 /** The user whose session the session guard accepted. */

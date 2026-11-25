@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { CurrentSession } from '@omniva/schemas';
 import { PersonalWorkspaces } from '../workspaces/personal-workspaces.js';
 import type { SignedInUser } from './authentication.js';
-import { SessionRequired } from './identity-errors.js';
+import { SessionRequired } from './errors/session-required.js';
 
 /** Assembles what the app shell needs to know about the signed-in user. */
 @Injectable()

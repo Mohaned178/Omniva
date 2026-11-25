@@ -48,6 +48,7 @@ them, or the API settings in `.env.example`, by copying values into a `.env` fil
 | `pnpm typecheck`        | TypeScript in every package                                         |
 | `pnpm test:seam2`       | Seam 2: domain rules, including property-based tests                |
 | `pnpm test:seam1`       | Seam 1: the /v1 API and worker on real PostgreSQL and Redis (Docker) |
+| `pnpm test:seam3`       | Seam 3: browser journeys with axe; builds the web app and starts the API and worker on ports 3100 and 4100 (Docker services must be up) |
 | `pnpm generate`         | Regenerates the Prisma client, OpenAPI document and API client      |
 | `pnpm check:generated`  | Fails if the committed OpenAPI document or client is out of date    |
 | `pnpm check:migrations` | Fails if an existing migration was edited (forward-only)            |

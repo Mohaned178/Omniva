@@ -10,8 +10,3 @@ export abstract class DomainError extends Error {
   abstract readonly kind: DomainErrorKind;
   abstract readonly code: string;
 }
-
-export class InvalidInput extends DomainError {
-  readonly kind = 'invalid-input';
-  readonly code = 'INVALID_INPUT';
-}
