@@ -1,0 +1,31 @@
+{
+  "app": {
+    "name": "Omniva"
+  },
+  "health": {
+    "title": "System health",
+    "description": "Whether each part of Omniva is reachable. Refreshes every few seconds.",
+    "componentsLabel": "Components",
+    "components": {
+      "web": "Web app",
+      "api": "API",
+      "database": "Database",
+      "redis": "Redis",
+      "worker": "Worker"
+    },
+    "status": {
+      "up": "Up",
+      "down": "Down",
+      "unknown": "Unknown",
+      "checking": "Checking…"
+    },
+    "overall": {
+      "ok": "Everything is working.",
+      "degraded": "Omniva works, more slowly: Redis is unreachable.",
+      "down": "Omniva is not working: a part it needs is down.",
+      "unreachable": "The API cannot be reached.",
+      "checking": "Checking…"
+    },
+    "checkedAt": "Last checked {time} (UTC)"
+  }
+}
