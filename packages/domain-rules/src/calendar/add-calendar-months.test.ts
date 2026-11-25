@@ -5,6 +5,7 @@ import { addCalendarMonths } from './add-calendar-months.js';
 
 const date = (year: number, month: number, day: number): CalendarDate => ({ year, month, day });
 
+// An independent oracle: the platform calendar, not the rule's own days-in-month table.
 const daysInMonth = (year: number, month: number): number =>
   new Date(Date.UTC(year, month, 0)).getUTCDate();
 

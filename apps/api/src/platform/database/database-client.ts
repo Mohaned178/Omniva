@@ -13,4 +13,9 @@ export class DatabaseClient extends PrismaClient implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
   }
+
+  /** Resolves when PostgreSQL answers a trivial query; rejects otherwise. */
+  async ping(): Promise<void> {
+    await this.$queryRaw`SELECT 1`;
+  }
 }

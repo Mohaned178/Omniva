@@ -1,6 +1,6 @@
 import { Injectable, type OnApplicationBootstrap } from '@nestjs/common';
 import { JobQueue } from '../platform/jobs/job-queue.js';
-import { HEALTH_PROBE_QUEUE, ensureHealthProbeQueue } from './health-probe-queue.js';
+import { HEALTH_PROBE_QUEUE, declareHealthProbeQueue } from './health-probe-queue.js';
 
 /** Fast polling so a health check gets its answer well inside its timeout. */
 const PROBE_POLLING_INTERVAL_SECONDS = 0.5;
@@ -11,8 +11,8 @@ export class HealthProbeHandler implements OnApplicationBootstrap {
   constructor(private readonly jobs: JobQueue) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    await ensureHealthProbeQueue(this.jobs.boss);
-    await this.jobs.boss.work(
+    await declareHealthProbeQueue(this.jobs);
+    await this.jobs.work(
       HEALTH_PROBE_QUEUE,
       { pollingIntervalSeconds: PROBE_POLLING_INTERVAL_SECONDS },
       async () => {

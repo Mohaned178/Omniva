@@ -3,6 +3,7 @@ import { Redis } from 'ioredis';
 import { AppConfig } from '../config/app-config.js';
 
 const CONNECT_TIMEOUT_MS = 1000;
+const PING_TIMEOUT_MS = 1000;
 
 /**
  * Redis (Valkey) for rate limits, session lookups and non-personal cache only (ADR 0020).
@@ -12,7 +13,7 @@ const CONNECT_TIMEOUT_MS = 1000;
 @Injectable()
 export class RedisClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisClient.name);
-  readonly connection: Redis;
+  private readonly connection: Redis;
 
   constructor(config: AppConfig) {
     this.connection = new Redis(config.redisUrl, {
@@ -35,4 +36,17 @@ export class RedisClient implements OnModuleInit, OnModuleDestroy {
   onModuleDestroy(): void {
     this.connection.disconnect();
   }
+
+  /** Resolves when Redis answers within a second; rejects otherwise. */
+  async ping(): Promise<void> {
+    await Promise.race([this.connection.ping(), rejectAfter(PING_TIMEOUT_MS)]);
+  }
+}
+
+function rejectAfter(milliseconds: number): Promise<never> {
+  return new Promise((_resolve, reject) => {
+    setTimeout(() => {
+      reject(new Error(`timed out after ${String(milliseconds)} ms`));
+    }, milliseconds).unref();
+  });
 }

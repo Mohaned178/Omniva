@@ -5,7 +5,7 @@ import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type HealthReport, useHealthReport } from './use-health-report';
 
-type DisplayedStatus = 'up' | 'down' | 'unknown' | 'checking';
+type DisplayedStatus = HealthReport['components']['api'] | 'unknown' | 'checking';
 type ComponentName = 'web' | keyof HealthReport['components'];
 type OverallMessage = HealthReport['status'] | 'unreachable' | 'checking';
 

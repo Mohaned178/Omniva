@@ -11,14 +11,27 @@ import { PROCESS_ROLE, type ProcessRole } from '../process-role.js';
 
 const STOP_TIMEOUT_MS = 10_000;
 
+export interface QueuePolicy {
+  readonly retryLimit: number;
+  /** How long a job may stay unfinished before pg-boss gives up on it. */
+  readonly expireInSeconds: number;
+  /** How long a finished job is kept before it is deleted. */
+  readonly retentionSeconds: number;
+}
+
+export interface WorkOptions {
+  readonly pollingIntervalSeconds: number;
+}
+
 /**
  * Durable background jobs stored in PostgreSQL with pg-boss (ADR 0015). Only the worker runs
- * pg-boss maintenance and cron scheduling; API instances just send jobs.
+ * pg-boss maintenance and cron scheduling; API instances just send jobs. pg-boss itself stays
+ * private so callers depend on this port, not on the library (CODING_STANDARDS §3).
  */
 @Injectable()
 export class JobQueue implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(JobQueue.name);
-  readonly boss: PgBoss;
+  private readonly boss: PgBoss;
 
   constructor(config: AppConfig, @Inject(PROCESS_ROLE) role: ProcessRole) {
     const isWorker = role === 'worker';
@@ -39,5 +52,33 @@ export class JobQueue implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy(): Promise<void> {
     await this.boss.stop({ graceful: true, timeout: STOP_TIMEOUT_MS });
+  }
+
+  /** Creates the queue if it is missing; safe to call from every process at start-up. */
+  async declareQueue(queue: string, policy: QueuePolicy): Promise<void> {
+    await this.boss.createQueue(queue, {
+      retryLimit: policy.retryLimit,
+      expireInSeconds: policy.expireInSeconds,
+      retentionSeconds: policy.retentionSeconds,
+      deleteAfterSeconds: policy.retentionSeconds,
+    });
+  }
+
+  /** Returns the job's id, or undefined when pg-boss declined to create it. */
+  async send(queue: string, data: object): Promise<string | undefined> {
+    return (await this.boss.send(queue, data)) ?? undefined;
+  }
+
+  async isCompleted(queue: string, jobId: string): Promise<boolean> {
+    const [job] = await this.boss.findJobs(queue, { id: jobId });
+    return job?.state === 'completed';
+  }
+
+  async work(queue: string, options: WorkOptions, handler: () => Promise<void>): Promise<void> {
+    await this.boss.work(
+      queue,
+      { pollingIntervalSeconds: options.pollingIntervalSeconds },
+      handler,
+    );
   }
 }

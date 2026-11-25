@@ -6,8 +6,6 @@ import { DatabaseClient } from '../platform/database/database-client.js';
 import { overallStatus } from './overall-status.js';
 import { WorkerProbe } from './worker-probe.js';
 
-const REDIS_PING_TIMEOUT_MS = 1000;
-
 /** Checks every component Omniva depends on, at once. */
 @Injectable()
 export class HealthCheck {
@@ -20,8 +18,8 @@ export class HealthCheck {
 
   async run(): Promise<HealthReport> {
     const [database, redis, worker] = await Promise.all([
-      this.databaseStatus(),
-      this.redisStatus(),
+      statusOf(this.database.ping()),
+      statusOf(this.redis.ping()),
       this.worker.status().catch((): ComponentStatus => 'down'),
     ]);
     const components = { api: 'up', database, redis, worker } as const;
@@ -31,30 +29,13 @@ export class HealthCheck {
       components,
     };
   }
-
-  private async databaseStatus(): Promise<ComponentStatus> {
-    try {
-      await this.database.$queryRaw`SELECT 1`;
-      return 'up';
-    } catch {
-      return 'down';
-    }
-  }
-
-  private async redisStatus(): Promise<ComponentStatus> {
-    try {
-      await Promise.race([this.redis.connection.ping(), rejectAfter(REDIS_PING_TIMEOUT_MS)]);
-      return 'up';
-    } catch {
-      return 'down';
-    }
-  }
 }
 
-function rejectAfter(milliseconds: number): Promise<never> {
-  return new Promise((_resolve, reject) => {
-    setTimeout(() => {
-      reject(new Error(`timed out after ${String(milliseconds)} ms`));
-    }, milliseconds).unref();
-  });
+async function statusOf(ping: Promise<void>): Promise<ComponentStatus> {
+  try {
+    await ping;
+    return 'up';
+  } catch {
+    return 'down';
+  }
 }
