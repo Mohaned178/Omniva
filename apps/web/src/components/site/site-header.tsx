@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { ButtonLink } from '@/components/ui/button-link';
 
 const NAV = [
   { href: '/features', key: 'features' },
@@ -33,12 +34,9 @@ export function SiteHeader() {
           <Link href="/sign-in" className="hover:underline">
             {t('signIn')}
           </Link>
-          <Link
-            href="/sign-up"
-            className="bg-foreground text-background rounded-md px-3 py-1.5 font-medium"
-          >
+          <ButtonLink href="/sign-up" className="px-3 py-1.5">
             {t('getStarted')}
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     </header>

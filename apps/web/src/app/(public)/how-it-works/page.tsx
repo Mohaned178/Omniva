@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { PageIntro } from '@/components/site/page-section';
+import { FeatureCard } from '@/components/site/feature-card';
+import { PageIntro } from '@/components/site/page-intro';
 import { ScreenshotPlaceholder } from '@/components/site/screenshot-placeholder';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,10 +18,7 @@ export default async function HowItWorksPage() {
       <PageIntro heading={t('heading')} intro={t('intro')} />
       <ol className="grid gap-6 sm:grid-cols-2">
         {STEPS.map((id) => (
-          <li key={id} className="rounded-xl border p-5">
-            <h2 className="text-lg font-semibold">{t(`steps.${id}.title`)}</h2>
-            <p className="text-muted-foreground mt-2 text-sm">{t(`steps.${id}.body`)}</p>
-          </li>
+          <FeatureCard key={id} title={t(`steps.${id}.title`)} body={t(`steps.${id}.body`)} />
         ))}
       </ol>
       <div className="mt-12">

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
-import { PageIntro } from '@/components/site/page-section';
+import { ButtonLink } from '@/components/ui/button-link';
+import { PageIntro } from '@/components/site/page-intro';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('pricing');
@@ -23,12 +23,9 @@ export default async function PricingPage() {
           ))}
         </ul>
       </section>
-      <Link
-        href="/sign-up"
-        className="bg-foreground text-background mt-8 inline-block rounded-md px-4 py-2 font-medium"
-      >
+      <ButtonLink href="/sign-up" className="mt-8">
         {t('cta')}
-      </Link>
+      </ButtonLink>
     </>
   );
 }

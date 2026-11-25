@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
-import { FeatureCard, FeatureGrid } from '@/components/site/page-section';
+import { ButtonLink } from '@/components/ui/button-link';
+import { FeatureCard } from '@/components/site/feature-card';
+import { FeatureGrid } from '@/components/site/feature-grid';
 import { ScreenshotPlaceholder } from '@/components/site/screenshot-placeholder';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,15 +22,10 @@ export default async function HomePage() {
           <h1 className="text-4xl font-semibold sm:text-5xl">{t('hero.heading')}</h1>
           <p className="text-muted-foreground mt-4 text-lg">{t('hero.body')}</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/sign-up"
-              className="bg-foreground text-background rounded-md px-4 py-2 font-medium"
-            >
-              {site('getStarted')}
-            </Link>
-            <Link href="/how-it-works" className="rounded-md border px-4 py-2 font-medium">
+            <ButtonLink href="/sign-up">{site('getStarted')}</ButtonLink>
+            <ButtonLink href="/how-it-works" variant="outline">
               {t('hero.secondary')}
-            </Link>
+            </ButtonLink>
           </div>
         </div>
         <ScreenshotPlaceholder name={t('hero.screenshotName')} />
@@ -51,12 +47,9 @@ export default async function HomePage() {
       <section className="mt-16 rounded-xl border p-8">
         <h2 className="text-2xl font-semibold">{t('cta.heading')}</h2>
         <p className="text-muted-foreground mt-2">{t('cta.body')}</p>
-        <Link
-          href="/sign-up"
-          className="bg-foreground text-background mt-5 inline-block rounded-md px-4 py-2 font-medium"
-        >
+        <ButtonLink href="/sign-up" className="mt-5">
           {t('cta.button')}
-        </Link>
+        </ButtonLink>
       </section>
     </>
   );

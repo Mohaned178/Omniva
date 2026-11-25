@@ -20,6 +20,14 @@ test.describe('a visitor browsing the public website without an account', () => 
         .analyze();
       expect(results.violations).toEqual([]);
     });
+
+    test(`${path} has no horizontal scrolling`, async ({ page }) => {
+      await page.goto(path);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
   }
 
   test('reaches every public page from the navigation', async ({ page }) => {
@@ -28,14 +36,6 @@ test.describe('a visitor browsing the public website without an account', () => 
       await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name }).click();
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     }
-  });
-
-  test('has no horizontal scrolling at any screen size', async ({ page }) => {
-    await page.goto('/');
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(0);
   });
 
   test('shows placeholder screenshots of the app', async ({ page }) => {

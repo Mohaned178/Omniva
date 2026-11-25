@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { FeatureCard, FeatureGrid, PageIntro } from '@/components/site/page-section';
+import { FeatureCard } from '@/components/site/feature-card';
+import { FeatureGrid } from '@/components/site/feature-grid';
+import { PageIntro } from '@/components/site/page-intro';
 import { ScreenshotPlaceholder } from '@/components/site/screenshot-placeholder';
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -31,7 +31,6 @@
   "site": {
     "skipToContent": "Skip to content",
     "mainNav": "Main",
-    "footerNav": "Footer",
     "getStarted": "Get started",
     "signIn": "Sign in",
     "nav": {
@@ -43,7 +42,7 @@
     },
     "footer": {
       "tagline": "A calm, private home for the important parts of your life.",
-      "copyright": "Omniva"
+      "copyright": "© Omniva"
     },
     "screenshot": "Placeholder screenshot: {name}"
   },
