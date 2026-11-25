@@ -171,6 +171,20 @@ describe('a Vehicle record', () => {
     ]);
   });
 
+  it('records nothing for an edit that leaves the record as it was', async () => {
+    const path = { workspaceId, recordId: await createFamilyCar() };
+
+    await me.api.PATCH('/v1/workspaces/{workspaceId}/records/{recordId}', {
+      params: { path },
+      body: { title: FAMILY_CAR.title, fields: FAMILY_CAR.fields },
+    });
+    const { data } = await me.api.GET('/v1/workspaces/{workspaceId}/records/{recordId}/history', {
+      params: { path },
+    });
+
+    expect(data?.entries.map(({ action }) => action)).toEqual(['created']);
+  });
+
   it('records that Omniva, not the user, created their Me', async () => {
     const newcomer = await signedInUser(omniva);
     const { personalWorkspace } = await currentSessionOf(newcomer);

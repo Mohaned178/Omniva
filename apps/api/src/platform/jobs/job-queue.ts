@@ -28,6 +28,12 @@ export interface SendOptions {
 
 export interface WorkOptions {
   readonly pollingIntervalSeconds: number;
+  /**
+   * How many jobs one fetch takes (default 1). pg-boss waits a polling interval between
+   * fetches, so a queue that can build a backlog takes several at a time. If the handler fails
+   * on one, the whole batch is retried, so its handler must be idempotent (§8).
+   */
+  readonly batchSize?: number;
 }
 
 /**
@@ -113,7 +119,10 @@ export class JobQueue implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     await this.boss.work(
       queue,
-      { pollingIntervalSeconds: options.pollingIntervalSeconds },
+      {
+        pollingIntervalSeconds: options.pollingIntervalSeconds,
+        ...(options.batchSize !== undefined && { batchSize: options.batchSize }),
+      },
       async (jobs) => {
         for (const job of jobs) await handler(job.data);
       },

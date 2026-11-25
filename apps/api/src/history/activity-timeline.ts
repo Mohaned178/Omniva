@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { ActivityAction, ActivityEntry } from '@omniva/schemas';
 import type { DatabaseTransaction } from '../platform/database/database-transaction.js';
 
-/** A change to note on the timeline. */
+/** A change to one record, to note on the timeline. */
 export interface TimelineChange {
   readonly workspaceId: string;
   readonly recordId: string;

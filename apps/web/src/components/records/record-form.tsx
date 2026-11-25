@@ -1,13 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FieldDefinition, RecordView, TypeDefinition } from '@omniva/schemas';
+import type { RecordView, TypeDefinition } from '@omniva/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useForm, type FieldError } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useWorkspaceId } from '@/components/app/use-workspace-id';
 import { Button } from '@/components/ui/button';
 import { FormAlert } from '@/components/ui/form-alert';
@@ -20,11 +20,9 @@ import {
   type RecordFormOutput,
   type RecordFormValues,
 } from './record-form-schema';
+import { FIELD_KIND_INPUTS } from './field-kind-inputs';
 import { recordKeys } from './record-queries';
 import { useTypeWording } from './use-type-wording';
-
-/** The input that suits each kind of field. */
-const INPUT_TYPES = { text: 'text', number: 'number', date: 'date' } as const;
 
 interface RecordFormProps {
   readonly type: TypeDefinition;
@@ -55,13 +53,6 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
     setHasFailed(!(await save(values)));
   }
 
-  function fieldError({ kind }: FieldDefinition, error: FieldError | undefined) {
-    if (!error) return undefined;
-    if (kind === 'number') return t('errors.number');
-    if (kind === 'date') return t('errors.date');
-    return t('errors.tooLong');
-  }
-
   return (
     <section>
       <h1 className="text-3xl font-semibold">{heading}</h1>
@@ -83,17 +74,20 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
           }
           {...register('title')}
         />
-        {type.fields.map((field) => (
-          <FormField
-            key={field.key}
-            label={wording.fieldLabel(type.key, field.key)}
-            type={INPUT_TYPES[field.kind]}
-            autoComplete="off"
-            {...(field.kind === 'number' && { inputMode: 'decimal' as const })}
-            error={fieldError(field, errors.fields?.[field.key])}
-            {...register(`fields.${field.key}`)}
-          />
-        ))}
+        {type.fields.map(({ key, kind }) => {
+          const { inputType, inputMode, errorMessage } = FIELD_KIND_INPUTS[kind];
+          return (
+            <FormField
+              key={key}
+              label={wording.fieldLabel(type.key, key)}
+              type={inputType}
+              autoComplete="off"
+              {...(inputMode !== undefined && { inputMode })}
+              error={errors.fields?.[key] ? t(`errors.${errorMessage}`) : undefined}
+              {...register(`fields.${key}`)}
+            />
+          );
+        })}
         <div className="flex flex-wrap items-center gap-4">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? t('saving') : t('save')}

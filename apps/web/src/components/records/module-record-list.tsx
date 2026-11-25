@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/button-link';
 import { newRecordPath, recordPath } from '@/lib/routes';
+import { QueryStatus } from './query-status';
 import { useModuleRecords, useTypes } from './record-queries';
 import { useTypeWording } from './use-type-wording';
 
@@ -45,12 +46,8 @@ export function ModuleRecordList({ module, otherListPath, archived }: ModuleReco
       </div>
 
       <div className="mt-8">
-        {records.isError ? (
-          <p role="alert">{t('unavailable')}</p>
-        ) : records.data === undefined ? (
-          <p role="status" className="text-muted-foreground">
-            {t('loading')}
-          </p>
+        {records.data === undefined ? (
+          <QueryStatus isError={records.isError} />
         ) : records.data.length === 0 ? (
           <p className="text-muted-foreground">{t('list.empty')}</p>
         ) : (

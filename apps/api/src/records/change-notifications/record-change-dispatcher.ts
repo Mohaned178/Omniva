@@ -5,6 +5,11 @@ import { RECORD_CHANGE_QUEUE, declareRecordChangeQueue } from './record-change-q
 import { RecordChangeSubscribers } from './record-change-subscribers.js';
 
 const POLLING_INTERVAL_SECONDS = 1;
+/**
+ * Every record change, including each Me made at sign-up, queues a notification, so a backlog
+ * builds whenever the worker was down; taking one per poll would drain it at one a second.
+ */
+const BATCH_SIZE = 50;
 
 /**
  * Worker side: takes each queued change notification and passes it to the subscribers. It
@@ -21,7 +26,7 @@ export class RecordChangeDispatcher implements OnApplicationBootstrap {
     await declareRecordChangeQueue(this.jobs);
     await this.jobs.work(
       RECORD_CHANGE_QUEUE,
-      { pollingIntervalSeconds: POLLING_INTERVAL_SECONDS },
+      { pollingIntervalSeconds: POLLING_INTERVAL_SECONDS, batchSize: BATCH_SIZE },
       async (data) => {
         await this.subscribers.deliver(RecordChangeNotificationSchema.parse(data));
       },

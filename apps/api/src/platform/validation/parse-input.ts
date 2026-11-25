@@ -12,7 +12,7 @@ export function parseInput<Schema extends z.ZodType>(
   const result = schema.safeParse(value);
   if (!result.success) {
     // Field paths only: the issue messages could quote what the user typed.
-    const fields = result.error.issues.map((issue) => issue.path.join('.') || '(body)');
+    const fields = result.error.issues.map((issue) => issue.path.join('.') || '(input)');
     throw new InvalidInput(`Invalid fields: ${[...new Set(fields)].join(', ')}`);
   }
   return result.data;

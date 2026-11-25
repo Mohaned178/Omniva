@@ -12,6 +12,7 @@ import { ButtonLink } from '@/components/ui/button-link';
 import { FormAlert } from '@/components/ui/form-alert';
 import { api } from '@/lib/api';
 import { editRecordPath } from '@/lib/routes';
+import { QueryStatus } from './query-status';
 import { recordKeys, useRecord, useRecordHistory, useTypes } from './record-queries';
 import { useTypeWording } from './use-type-wording';
 
@@ -20,14 +21,7 @@ export function RecordPage({ recordId }: { readonly recordId: string }) {
   const t = useTranslations('records');
   const record = useRecord(recordId);
 
-  if (record.isError) return <p role="alert">{t('unavailable')}</p>;
-  if (record.data === undefined) {
-    return (
-      <p role="status" className="text-muted-foreground">
-        {t('loading')}
-      </p>
-    );
-  }
+  if (record.data === undefined) return <QueryStatus isError={record.isError} />;
   if (record.data === null) return <p role="alert">{t('notFound')}</p>;
   return <RecordPageContent record={record.data} />;
 }
@@ -158,9 +152,7 @@ function RecordHistoryList({ recordId }: { readonly recordId: string }) {
         {t('history.heading')}
       </h2>
       {history.data === undefined ? (
-        <p role="status" className="text-muted-foreground">
-          {history.isError ? t('unavailable') : t('loading')}
-        </p>
+        <QueryStatus isError={history.isError} />
       ) : (
         <ul aria-labelledby={headingId} className="space-y-1">
           {history.data.map((entry, position) => (

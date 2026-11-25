@@ -5,7 +5,7 @@ import type { RecordChangeNotification } from './record-change-notification.js';
  * Reacts to one record change. A notification can arrive more than once when a delivery is
  * retried, so every subscriber must be idempotent (CODING_STANDARDS §8).
  */
-export type RecordChangeSubscriber = (notification: RecordChangeNotification) => Promise<void>;
+type RecordChangeSubscriber = (notification: RecordChangeNotification) => Promise<void>;
 
 /**
  * Worker side: the modules that react to record changes, such as search and reminders,

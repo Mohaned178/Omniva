@@ -1031,21 +1031,6 @@
         ],
         "additionalProperties": false
       },
-      "Block": {
-        "type": "string",
-        "enum": [
-          "item",
-          "document",
-          "money_record",
-          "obligation",
-          "event",
-          "task",
-          "person",
-          "note",
-          "plan",
-          "measurement"
-        ]
-      },
       "RecordFields": {
         "type": "object",
         "additionalProperties": {
@@ -1103,6 +1088,11 @@
           "entertainment"
         ]
       },
+      "RecordId": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+      },
       "LifecycleState": {
         "type": "string",
         "enum": [
@@ -1119,11 +1109,6 @@
           "in_progress",
           "past"
         ]
-      },
-      "RecordId": {
-        "type": "string",
-        "format": "uuid",
-        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
       },
       "Record": {
         "type": "object",
@@ -1192,6 +1177,21 @@
           "records"
         ],
         "additionalProperties": false
+      },
+      "Block": {
+        "type": "string",
+        "enum": [
+          "item",
+          "document",
+          "money_record",
+          "obligation",
+          "event",
+          "task",
+          "person",
+          "note",
+          "plan",
+          "measurement"
+        ]
       },
       "FieldKey": {
         "type": "string",

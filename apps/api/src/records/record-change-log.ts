@@ -1,18 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { ActivityAction } from '@omniva/schemas';
-import { ActivityTimeline } from '../history/activity-timeline.js';
+import { ActivityTimeline, type TimelineChange } from '../history/activity-timeline.js';
 import type { DatabaseTransaction } from '../platform/database/database-transaction.js';
 import { RecordChangeAnnouncer } from './change-notifications/record-change-announcer.js';
-
-/** A change Records core made to one record. */
-export interface RecordChange {
-  readonly workspaceId: string;
-  readonly recordId: string;
-  readonly action: ActivityAction;
-  /** The user who made the change; null when Omniva made it. */
-  readonly actorUserId: string | null;
-  readonly occurredAt: Date;
-}
 
 /**
  * Notes each change to a record inside the transaction that makes it (ADR 0008,
@@ -26,7 +15,7 @@ export class RecordChangeLog {
     private readonly announcer: RecordChangeAnnouncer,
   ) {}
 
-  async note(transaction: DatabaseTransaction, change: RecordChange): Promise<void> {
+  async note(transaction: DatabaseTransaction, change: TimelineChange): Promise<void> {
     await this.timeline.note(transaction, change);
     await this.announcer.announce(transaction, {
       workspaceId: change.workspaceId,

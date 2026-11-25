@@ -6,7 +6,6 @@ export {
 } from './health/health-report.js';
 export {
   ACTIVITY_ACTIONS,
-  ActivityEntrySchema,
   RecordHistorySchema,
   type ActivityAction,
   type ActivityEntry,
@@ -26,13 +25,11 @@ export {
   type SignUpRequest,
 } from './identity/sign-up-request.js';
 export type { Block, LifeModule, LifecycleState, MemberRole } from '@omniva/domain-types';
-export { BlockSchema } from './records/block.js';
 export {
   CreateRecordRequestSchema,
   type CreateRecordRequest,
 } from './records/create-record-request.js';
 export { LifeModuleSchema } from './records/life-module.js';
-export { LifecycleStateSchema } from './records/lifecycle-state.js';
 export {
   RecordFieldsSchema,
   recordFieldsSchemaFor,
@@ -48,19 +45,13 @@ export {
   type RecordView,
 } from './records/record.js';
 export {
-  FIELD_KINDS,
-  FieldDefinitionSchema,
-  FieldKeySchema,
-  ReminderRuleSchema,
   TypeDefinitionSchema,
   TypeListSchema,
   type FieldDefinition,
   type FieldKind,
-  type ReminderRule,
   type TypeDefinition,
   type TypeList,
 } from './records/type-definition.js';
-export { TypeKeySchema } from './records/type-key.js';
 export {
   UpdateRecordRequestSchema,
   type UpdateRecordRequest,

@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { Injectable } from '@nestjs/common';
 import { initialLifecycleState } from '@omniva/domain-rules';
 import {
@@ -57,42 +58,56 @@ export class RecordChanges {
         },
         select: STORED_RECORD_SELECT,
       });
-      return this.noted(transaction, access, record, 'created');
+      await this.noteChange(transaction, access, record, 'created');
+      return toRecordView(record);
     });
   }
 
-  /** Changes a record's title or fields; new fields replace the old ones as a whole. */
+  /**
+   * Changes a record's title or fields; new fields replace the old ones as a whole. An edit
+   * that leaves everything as it was is not a change, so nothing is noted.
+   */
   async update(
     access: WorkspaceAccess,
     recordId: string,
     request: UpdateRecordRequest,
   ): Promise<RecordView> {
     return this.database.$scopedTransaction(access, async (transaction) => {
-      const { typeKey } = await storedRecordOf(transaction, access, recordId);
+      const current = toRecordView(await storedRecordOf(transaction, access, recordId));
+      const title = request.title ?? current.title;
+      const fields =
+        request.fields === undefined
+          ? current.fields
+          : validFields(this.typeCalled(current.typeKey), request.fields);
+      if (title === current.title && isDeepStrictEqual(fields, current.fields)) return current;
       const record = await transaction.record.update({
         where: { id: recordId },
-        data: {
-          ...(request.title !== undefined && { title: request.title }),
-          ...(request.fields !== undefined && {
-            fields: validFields(this.typeCalled(typeKey), request.fields),
-          }),
-          updatedAt: this.clock.now(),
-        },
+        data: { title, fields, updatedAt: this.clock.now() },
         select: STORED_RECORD_SELECT,
       });
-      return this.noted(transaction, access, record, 'updated');
+      await this.noteChange(transaction, access, record, 'updated');
+      return toRecordView(record);
     });
   }
 
   /**
-   * Archives or unarchives a record (GLOSSARY.md, Archived). Archiving puts it away and keeps
-   * everything: its fields, lifecycle state, links and history. Asking for the state it is
-   * already in changes nothing, so nothing is noted.
+   * Puts a record away (GLOSSARY.md, Archived), keeping everything: its fields, lifecycle
+   * state, links and history.
    */
-  async setArchived(
+  async archive(access: WorkspaceAccess, recordId: string): Promise<RecordView> {
+    return this.changeArchived(access, recordId, { isArchived: true, action: 'archived' });
+  }
+
+  /** Brings an archived record back into use. */
+  async unarchive(access: WorkspaceAccess, recordId: string): Promise<RecordView> {
+    return this.changeArchived(access, recordId, { isArchived: false, action: 'unarchived' });
+  }
+
+  /** Asking for the state a record is already in changes nothing, so nothing is noted. */
+  private async changeArchived(
     access: WorkspaceAccess,
     recordId: string,
-    isArchived: boolean,
+    { isArchived, action }: { readonly isArchived: boolean; readonly action: ActivityAction },
   ): Promise<RecordView> {
     return this.database.$scopedTransaction(access, async (transaction) => {
       const existing = await storedRecordOf(transaction, access, recordId);
@@ -102,17 +117,18 @@ export class RecordChanges {
         data: { isArchived, updatedAt: this.clock.now() },
         select: STORED_RECORD_SELECT,
       });
-      return this.noted(transaction, access, record, isArchived ? 'archived' : 'unarchived');
+      await this.noteChange(transaction, access, record, action);
+      return toRecordView(record);
     });
   }
 
-  /** Notes the change just made to the record, inside its transaction, and shows the record. */
-  private async noted(
+  /** Notes the change the member just made to the record, inside its transaction. */
+  private async noteChange(
     transaction: DatabaseTransaction,
     access: WorkspaceAccess,
     record: StoredRecord,
     action: ActivityAction,
-  ): Promise<RecordView> {
+  ): Promise<void> {
     await this.changeLog.note(transaction, {
       workspaceId: access.workspaceId,
       recordId: record.id,
@@ -120,7 +136,6 @@ export class RecordChanges {
       actorUserId: access.userId,
       occurredAt: record.updatedAt,
     });
-    return toRecordView(record);
   }
 
   private typeCalled(typeKey: string): TypeDefinition {

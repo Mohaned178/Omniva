@@ -167,7 +167,7 @@ export class RecordsController {
     @CurrentWorkspace() access: WorkspaceAccess,
     @Param(RECORD_ID_PARAM) recordId: string,
   ): Promise<RecordView> {
-    return this.changes.setArchived(access, recordId, true);
+    return this.changes.archive(access, recordId);
   }
 
   @Post(`:${RECORD_ID_PARAM}/unarchive`)
@@ -184,6 +184,6 @@ export class RecordsController {
     @CurrentWorkspace() access: WorkspaceAccess,
     @Param(RECORD_ID_PARAM) recordId: string,
   ): Promise<RecordView> {
-    return this.changes.setArchived(access, recordId, false);
+    return this.changes.unarchive(access, recordId);
   }
 }

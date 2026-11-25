@@ -287,8 +287,6 @@ export interface components {
             email: string;
             password: string;
         };
-        /** @enum {string} */
-        Block: "item" | "document" | "money_record" | "obligation" | "event" | "task" | "person" | "note" | "plan" | "measurement";
         RecordFields: {
             [key: string]: string | number;
         };
@@ -300,10 +298,10 @@ export interface components {
         };
         /** @enum {string} */
         LifeModule: "productivity" | "finance" | "health" | "knowledge" | "career" | "assets" | "social" | "travel" | "home" | "subscriptions" | "documents" | "entertainment";
-        /** @enum {string} */
-        LifecycleState: "owned" | "disposed" | "active" | "ending" | "ended" | "valid" | "expired" | "open" | "done" | "upcoming" | "in_progress" | "past";
         /** Format: uuid */
         RecordId: string;
+        /** @enum {string} */
+        LifecycleState: "owned" | "disposed" | "active" | "ending" | "ended" | "valid" | "expired" | "open" | "done" | "upcoming" | "in_progress" | "past";
         Record: {
             id: components["schemas"]["RecordId"];
             typeKey: components["schemas"]["TypeKey"];
@@ -320,6 +318,8 @@ export interface components {
         RecordList: {
             records: components["schemas"]["Record"][];
         };
+        /** @enum {string} */
+        Block: "item" | "document" | "money_record" | "obligation" | "event" | "task" | "person" | "note" | "plan" | "measurement";
         FieldKey: string;
         FieldDefinition: {
             key: components["schemas"]["FieldKey"];
