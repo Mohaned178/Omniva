@@ -72,3 +72,9 @@ jobs:
         run: pnpm --filter @omniva/web build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:4000
+      - name: Seam 3, browser journeys with accessibility checks
+        run: |
+          pnpm --filter @omniva/web exec playwright install --with-deps chromium
+          pnpm --filter @omniva/web test:seam3
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000

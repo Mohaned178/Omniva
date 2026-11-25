@@ -27,5 +27,180 @@
       "checking": "Checking…"
     },
     "checkedAt": "Last checked {time} (UTC)"
+  },
+  "site": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main",
+    "getStarted": "Get started",
+    "signIn": "Sign in",
+    "nav": {
+      "features": "Features",
+      "howItWorks": "How it works",
+      "pricing": "Pricing",
+      "privacy": "Privacy",
+      "faq": "FAQ"
+    },
+    "footer": {
+      "tagline": "A calm, private home for the important parts of your life.",
+      "copyright": "© Omniva"
+    },
+    "screenshot": "Placeholder screenshot: {name}"
+  },
+  "home": {
+    "title": "Omniva: keep track of what matters",
+    "hero": {
+      "heading": "Keep track of what matters, and know what is coming",
+      "body": "Omniva keeps your documents, subscriptions, insurance, vehicles and more in one place, connects them, and reminds you before a date slips. You stay in control of your data.",
+      "secondary": "See how it works",
+      "screenshotName": "your records and what is coming"
+    },
+    "pillars": {
+      "heading": "Made for people who organize life by hand",
+      "items": {
+        "connected": {
+          "title": "Everything connected",
+          "body": "The car knows its insurance. The washing machine knows its warranty. Ask what you are paying for, or what needs attention this month."
+        },
+        "reminders": {
+          "title": "Told before it slips",
+          "body": "Passports, renewals, free trials and warranties get a reminder ahead of the date, so nothing surprises you."
+        },
+        "control": {
+          "title": "You stay in control",
+          "body": "Nothing is shared unless you share it. Export everything, anytime. Deleting your data really deletes it."
+        }
+      }
+    },
+    "cta": {
+      "heading": "Start with the one date that matters",
+      "body": "Add a car, a passport or a subscription and see what is coming in your first session.",
+      "button": "Create your account"
+    }
+  },
+  "features": {
+    "title": "Features",
+    "heading": "Features",
+    "intro": "Omniva stores information and, more importantly, connects it.",
+    "items": {
+      "records": {
+        "title": "Records for everything",
+        "body": "Keep cars, documents, subscriptions, insurance policies and household items as connected records."
+      },
+      "keyDates": {
+        "title": "Key dates and reminders",
+        "body": "Each record carries the date that matters, such as an expiry, a renewal or the end of a warranty, with reminders before it."
+      },
+      "links": {
+        "title": "Links between records",
+        "body": "Connect a car to its policy and a repair to its invoice. Omniva also suggests connections you may have missed."
+      },
+      "capture": {
+        "title": "Capture from anywhere",
+        "body": "Send a photo, a file or a forwarded email and turn it into a record when you are ready."
+      },
+      "sharing": {
+        "title": "Share on your terms",
+        "body": "Invite family or others to a workspace with the access you choose. Nothing is shared unless you share it."
+      },
+      "export": {
+        "title": "Export, anytime",
+        "body": "Take everything with you in an open format whenever you want."
+      }
+    },
+    "screenshotName": "your records and what is coming"
+  },
+  "how": {
+    "title": "How it works",
+    "heading": "How it works",
+    "intro": "From sign-up to knowing what is coming, in your first session.",
+    "steps": {
+      "one": {
+        "title": "Sign up",
+        "body": "Create an account with your email address and a password, then verify your email."
+      },
+      "two": {
+        "title": "Add what matters",
+        "body": "Add a handful of real records: a car, a passport, subscriptions, insurance. Give each the one date that matters."
+      },
+      "three": {
+        "title": "See what is coming",
+        "body": "Your upcoming dates appear straight away, with reminders set for you."
+      },
+      "four": {
+        "title": "Connect and grow",
+        "body": "Link related records, capture new ones from email or photos, and let Omniva point out what needs attention."
+      }
+    },
+    "screenshotName": "the upcoming view"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "heading": "Pricing",
+    "intro": "Plans and prices have not been announced yet. Whatever they turn out to be, these promises hold.",
+    "promise": {
+      "heading": "What will not change",
+      "items": {
+        "read": "You keep read-only access and export with no time limit, even if you stop paying.",
+        "ads": "We never sell your data or show you ads.",
+        "export": "You can export everything, anytime."
+      }
+    },
+    "cta": "Create your account"
+  },
+  "privacy": {
+    "title": "Privacy",
+    "heading": "Privacy",
+    "intro": "Your records are personal. These are our commitments to you.",
+    "commitments": {
+      "sell": "We never sell your data or show you ads.",
+      "ai": "We never use your data to train AI models.",
+      "export": "You can export everything, anytime.",
+      "delete": "Deleting your data really deletes it.",
+      "share": "Nothing is shared unless you share it.",
+      "readOnly": "You keep read-only access and export with no time limit, even if you stop paying."
+    },
+    "analytics": {
+      "heading": "On this website",
+      "body": "This public website sets no cookies and uses no third-party trackers."
+    }
+  },
+  "faq": {
+    "title": "FAQ",
+    "heading": "Frequently asked questions",
+    "items": {
+      "what": {
+        "q": "What is Omniva?",
+        "a": "A personal life management platform that keeps your records connected and reminds you before important dates."
+      },
+      "account": {
+        "q": "Do I need an account?",
+        "a": "You can read these pages without one. Using the app needs an account, so that your data is always protected."
+      },
+      "cost": {
+        "q": "How much does it cost?",
+        "a": "Pricing has not been announced yet. You will always keep read-only access and export."
+      },
+      "data": {
+        "q": "Who can see my data?",
+        "a": "Only you, and the people you choose to share with. We never sell your data or use it to train AI models."
+      },
+      "leave": {
+        "q": "Can I take my data with me?",
+        "a": "Yes. You can export everything, anytime."
+      }
+    }
+  },
+  "auth": {
+    "signUp": {
+      "title": "Sign up",
+      "heading": "Create your account",
+      "body": "Sign-up is not open yet."
+    },
+    "signIn": {
+      "title": "Sign in",
+      "heading": "Sign in to Omniva",
+      "body": "Sign-in is not open yet."
+    },
+    "backHome": "Back to the home page"
   }
 }
