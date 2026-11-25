@@ -199,6 +199,541 @@
         "x-omniva-public": true
       }
     },
+    "/v1/workspaces/{workspaceId}/records": {
+      "post": {
+        "operationId": "createRecord",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRecordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, such as a field the Type does not have",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user’s role in the workspace does not allow this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a record of a Type, in the Type’s home module",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "editor"
+      },
+      "get": {
+        "operationId": "listRecords",
+        "parameters": [
+          {
+            "name": "archived",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "module",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/LifeModule"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, such as a field the Type does not have",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The records whose home is a module, in use or archived",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      }
+    },
+    "/v1/workspaces/{workspaceId}/records/{recordId}": {
+      "get": {
+        "operationId": "getRecord",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RecordId"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such record in the workspace\n\nThe workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "One record with its anatomy and fields",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      },
+      "patch": {
+        "operationId": "updateRecord",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RecordId"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRecordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, such as a field the Type does not have",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user’s role in the workspace does not allow this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such record in the workspace\n\nThe workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Change a record’s title or fields; given fields replace the old ones",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "editor"
+      }
+    },
+    "/v1/workspaces/{workspaceId}/records/{recordId}/history": {
+      "get": {
+        "operationId": "getRecordHistory",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RecordId"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record’s history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordHistory"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such record in the workspace\n\nThe workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A record’s own changes on the Activity Timeline, oldest first",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      }
+    },
+    "/v1/workspaces/{workspaceId}/records/{recordId}/archive": {
+      "post": {
+        "operationId": "archiveRecord",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RecordId"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user’s role in the workspace does not allow this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such record in the workspace\n\nThe workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Put a record away, keeping its fields, links and history",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "editor"
+      }
+    },
+    "/v1/workspaces/{workspaceId}/records/{recordId}/unarchive": {
+      "post": {
+        "operationId": "unarchiveRecord",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RecordId"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user’s role in the workspace does not allow this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such record in the workspace\n\nThe workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Bring an archived record back into use",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "editor"
+      }
+    },
+    "/v1/workspaces/{workspaceId}/types": {
+      "get": {
+        "operationId": "listTypes",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The Types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TypeList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The Types records can be created from",
+        "tags": [
+          "records"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      }
+    },
     "/v1/workspaces/{workspaceId}": {
       "get": {
         "operationId": "getWorkspace",
@@ -330,6 +865,50 @@
         ],
         "additionalProperties": false
       },
+      "ActivityEntry": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "created",
+              "updated",
+              "archived",
+              "unarchived"
+            ]
+          },
+          "actorUserId": {
+            "nullable": true,
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "action",
+          "actorUserId",
+          "occurredAt"
+        ],
+        "additionalProperties": false
+      },
+      "RecordHistory": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityEntry"
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "additionalProperties": false
+      },
       "ApiError": {
         "type": "object",
         "properties": {
@@ -450,6 +1029,286 @@
           "email",
           "password"
         ],
+        "additionalProperties": false
+      },
+      "Block": {
+        "type": "string",
+        "enum": [
+          "item",
+          "document",
+          "money_record",
+          "obligation",
+          "event",
+          "task",
+          "person",
+          "note",
+          "plan",
+          "measurement"
+        ]
+      },
+      "RecordFields": {
+        "type": "object",
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "TypeKey": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "CreateRecordRequest": {
+        "type": "object",
+        "properties": {
+          "typeKey": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "fields": {
+            "$ref": "#/components/schemas/RecordFields"
+          }
+        },
+        "required": [
+          "typeKey",
+          "title",
+          "fields"
+        ],
+        "additionalProperties": false
+      },
+      "LifeModule": {
+        "type": "string",
+        "enum": [
+          "productivity",
+          "finance",
+          "health",
+          "knowledge",
+          "career",
+          "assets",
+          "social",
+          "travel",
+          "home",
+          "subscriptions",
+          "documents",
+          "entertainment"
+        ]
+      },
+      "LifecycleState": {
+        "type": "string",
+        "enum": [
+          "owned",
+          "disposed",
+          "active",
+          "ending",
+          "ended",
+          "valid",
+          "expired",
+          "open",
+          "done",
+          "upcoming",
+          "in_progress",
+          "past"
+        ]
+      },
+      "RecordId": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+      },
+      "Record": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/RecordId"
+          },
+          "typeKey": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "title": {
+            "type": "string"
+          },
+          "homeModule": {
+            "$ref": "#/components/schemas/LifeModule"
+          },
+          "lifecycleState": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleState"
+              }
+            ]
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/RecordFields"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "id",
+          "typeKey",
+          "title",
+          "homeModule",
+          "lifecycleState",
+          "isArchived",
+          "fields",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "RecordList": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            }
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "additionalProperties": false
+      },
+      "FieldKey": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      },
+      "FieldDefinition": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "number",
+              "date"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "ReminderRule": {
+        "type": "object",
+        "properties": {
+          "keyDateField": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "daysBefore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "keyDateField",
+          "daysBefore"
+        ],
+        "additionalProperties": false
+      },
+      "TypeDefinition": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "block": {
+            "$ref": "#/components/schemas/Block"
+          },
+          "homeModule": {
+            "$ref": "#/components/schemas/LifeModule"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDefinition"
+            }
+          },
+          "keyDateFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldKey"
+            }
+          },
+          "defaultReminderRules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReminderRule"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "block",
+          "homeModule",
+          "fields",
+          "keyDateFields",
+          "defaultReminderRules"
+        ],
+        "additionalProperties": false
+      },
+      "TypeList": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TypeDefinition"
+            }
+          }
+        },
+        "required": [
+          "types"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateRecordRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "fields": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecordFields"
+              }
+            ]
+          }
+        },
         "additionalProperties": false
       },
       "WorkspaceId": {
