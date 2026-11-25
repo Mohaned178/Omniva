@@ -45,7 +45,7 @@ export default tseslint.config(
   },
   {
     // Plain JavaScript tooling scripts have no TypeScript project to type-check against.
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'apps/*/scripts/**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
   },
   {

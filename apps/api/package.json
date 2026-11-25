@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start:api": "node dist/main.js",
     "start:worker": "node dist/worker.js",
+    "serve": "pnpm build && node scripts/serve.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "openapi:generate": "pnpm build && node dist/openapi/write-openapi-document.js",
