@@ -211,7 +211,7 @@
       "passwordHint": "At least {min} characters. A few words together are easy to remember.",
       "submit": "Sign up",
       "submitting": "Signing up…",
-      "haveLogin": "Already signed up?",
+      "alreadySignedUp": "Already signed up?",
       "signInLink": "Sign in",
       "checkEmail": {
         "heading": "Check your email",

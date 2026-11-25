@@ -3,7 +3,7 @@ import { OmnivaHarness } from './support/omniva-harness.js';
 import { TEST_WEB_ORIGIN } from './support/test-environment.js';
 import { PASSWORD, newEmail, verificationTokenFor, verifiedUser } from './support/users.js';
 
-/** Workspace and record identifiers are random UUIDs (CODING_STANDARDS �6). */
+/** Workspace and record identifiers are random UUIDs (CODING_STANDARDS §6). */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 describe('sign-up, email verification and sign-in', () => {

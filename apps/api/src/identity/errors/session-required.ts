@@ -1,4 +1,4 @@
-import { DomainError } from '../../platform/http/domain-error.js';
+import { DomainError } from '../../platform/errors/domain-error.js';
 
 /** No valid session came with the request. */
 export class SessionRequired extends DomainError {

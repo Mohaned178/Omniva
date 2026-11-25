@@ -12,7 +12,8 @@ import {
 import type { Request, Response } from 'express';
 import { ApiZodResponse } from '../platform/http/api-zod-response.js';
 import { ApiZodBody, ZodBody } from '../platform/http/zod-body.js';
-import { Authentication, type SessionCookies } from './authentication.js';
+import { Authentication } from './authentication.js';
+import { passOnCookies } from './pass-on-cookies.js';
 import { Public } from './public.decorator.js';
 import { requestHeaders } from './signed-in-request.js';
 
@@ -62,7 +63,7 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    passOn(await this.authentication.verifyEmail(token, requestHeaders(request)), response);
+    passOnCookies(await this.authentication.verifyEmail(token, requestHeaders(request)), response);
   }
 
   @Public()
@@ -86,7 +87,7 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    passOn(await this.authentication.signIn(body, requestHeaders(request)), response);
+    passOnCookies(await this.authentication.signIn(body, requestHeaders(request)), response);
   }
 
   @Post('sign-out')
@@ -97,10 +98,6 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    passOn(await this.authentication.signOut(requestHeaders(request)), response);
+    passOnCookies(await this.authentication.signOut(requestHeaders(request)), response);
   }
-}
-
-function passOn(cookies: SessionCookies, response: Response): void {
-  if (cookies.length > 0) response.append('Set-Cookie', [...cookies]);
 }

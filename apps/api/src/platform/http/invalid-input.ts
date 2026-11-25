@@ -1,4 +1,4 @@
-import { DomainError } from './domain-error.js';
+import { DomainError } from '../errors/domain-error.js';
 
 /** A request body that does not match its shared schema. */
 export class InvalidInput extends DomainError {

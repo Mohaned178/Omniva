@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import type { Response } from 'express';
 import { Authentication } from './authentication.js';
 import { SessionRequired } from './errors/session-required.js';
+import { passOnCookies } from './pass-on-cookies.js';
 import { IS_PUBLIC } from './public.decorator.js';
 import { requestHeaders, type SignedInRequest } from './signed-in-request.js';
 
@@ -26,7 +27,7 @@ export class SessionGuard implements CanActivate {
     const { user, cookies } = await this.authentication.lookUpSession(requestHeaders(request));
     if (!user) throw new SessionRequired('Sign in to use this.');
 
-    if (cookies.length > 0) http.getResponse<Response>().append('Set-Cookie', [...cookies]);
+    passOnCookies(cookies, http.getResponse<Response>());
     request.signedInUser = user;
     return true;
   }

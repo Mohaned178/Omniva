@@ -7,27 +7,35 @@ const DEFAULT_MAIL_FROM = 'Omniva <no-reply@omniva.local>';
 /** Better Auth signs tokens with this secret; shorter secrets are too easy to guess. */
 const MIN_AUTH_SECRET_LENGTH = 32;
 
-const EnvironmentSchema = z.object({
-  DATABASE_URL: z.url(),
-  REDIS_URL: z.url(),
-  WEB_ORIGIN: z.url(),
-  /** The address browsers reach the API at. Session cookies are Secure when it is https. */
-  API_PUBLIC_URL: z.url(),
-  API_PORT: z.coerce.number().int().min(0).max(65_535).default(DEFAULT_API_PORT),
-  WORKER_PROBE_TIMEOUT_MS: z.coerce
-    .number()
-    .int()
-    .positive()
-    .default(DEFAULT_WORKER_PROBE_TIMEOUT_MS),
-  SMTP_URL: z.url(),
-  MAIL_FROM: z.string().min(1).default(DEFAULT_MAIL_FROM),
-  AUTH_SECRET: z.string().min(MIN_AUTH_SECRET_LENGTH),
-  /**
-   * The parent domain the web app and the API share, such as `omniva.app`, so the session
-   * cookie reaches both subdomains. Unset locally, where both run on localhost.
-   */
-  COOKIE_DOMAIN: z.string().min(1).optional(),
-});
+const EnvironmentSchema = z
+  .object({
+    DATABASE_URL: z.url(),
+    REDIS_URL: z.url(),
+    WEB_ORIGIN: z.url(),
+    /** The address browsers reach the API at. Session cookies are Secure when it is https. */
+    API_PUBLIC_URL: z.url(),
+    API_PORT: z.coerce.number().int().min(0).max(65_535).default(DEFAULT_API_PORT),
+    WORKER_PROBE_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(DEFAULT_WORKER_PROBE_TIMEOUT_MS),
+    SMTP_URL: z.url(),
+    MAIL_FROM: z.string().min(1).default(DEFAULT_MAIL_FROM),
+    AUTH_SECRET: z.string().min(MIN_AUTH_SECRET_LENGTH),
+    /**
+     * The parent domain the web app and the API share, such as `omniva.app`, so the session
+     * cookie reaches both subdomains. Unset locally, where both run on localhost.
+     */
+    COOKIE_DOMAIN: z.string().min(1).optional(),
+  })
+  // A deployment shares the session cookie across subdomains, and that cookie must be Secure
+  // (spec, D3): refuse to start rather than hand out sessions over plain http.
+  .refine(
+    ({ COOKIE_DOMAIN, API_PUBLIC_URL }) =>
+      COOKIE_DOMAIN === undefined || new URL(API_PUBLIC_URL).protocol === 'https:',
+    { path: ['API_PUBLIC_URL'], error: 'must be https when COOKIE_DOMAIN is set' },
+  );
 
 /** Settings read once from the environment at start-up. Also the DI token for them. */
 export abstract class AppConfig {

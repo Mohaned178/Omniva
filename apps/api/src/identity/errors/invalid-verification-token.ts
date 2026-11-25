@@ -1,4 +1,4 @@
-import { DomainError } from '../../platform/http/domain-error.js';
+import { DomainError } from '../../platform/errors/domain-error.js';
 
 /** The email verification token is not genuine or has expired. */
 export class InvalidVerificationToken extends DomainError {

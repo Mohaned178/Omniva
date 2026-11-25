@@ -1,8 +1,6 @@
-import type { components } from '@omniva/api-client';
+import type { CurrentSession } from '@omniva/schemas';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-
-export type CurrentSession = components['schemas']['CurrentSession'];
 
 export const CURRENT_SESSION_QUERY_KEY = ['current-session'] as const;
 

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import type { ApiError } from '@omniva/schemas';
 import type { Response } from 'express';
-import { DomainError, type DomainErrorKind } from './domain-error.js';
+import { DomainError, type DomainErrorKind } from '../errors/domain-error.js';
 
 const STATUS_BY_KIND: Readonly<Record<DomainErrorKind, HttpStatus>> = {
   'invalid-input': HttpStatus.BAD_REQUEST,

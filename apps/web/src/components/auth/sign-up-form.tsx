@@ -16,6 +16,7 @@ import { FocusedHeading } from '@/components/ui/focused-heading';
 import { FormAlert } from '@/components/ui/form-alert';
 import { FormField } from '@/components/ui/form-field';
 import { api } from '@/lib/api';
+import { SIGN_IN_PATH } from '@/lib/routes';
 import { useAuthErrorMessage } from './use-auth-error-message';
 
 export function SignUpForm() {
@@ -85,8 +86,8 @@ export function SignUpForm() {
         </Button>
       </form>
       <p className="mt-6 text-sm">
-        {t('signUp.haveLogin')}{' '}
-        <Link href="/sign-in" className="underline">
+        {t('signUp.alreadySignedUp')}{' '}
+        <Link href={SIGN_IN_PATH} className="underline">
           {t('signUp.signInLink')}
         </Link>
       </p>

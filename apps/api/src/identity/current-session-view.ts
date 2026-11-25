@@ -9,7 +9,7 @@ import { SessionRequired } from './errors/session-required.js';
 export class CurrentSessionView {
   constructor(private readonly personalWorkspaces: PersonalWorkspaces) {}
 
-  async for(user: SignedInUser): Promise<CurrentSession> {
+  async forUser(user: SignedInUser): Promise<CurrentSession> {
     const membership = await this.personalWorkspaces.membershipOf(user.userId);
     // Verification provisions the workspace before any session exists, so a missing one
     // means the user's data was removed while they were signed in.

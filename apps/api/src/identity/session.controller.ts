@@ -24,6 +24,6 @@ export class SessionController {
     schema: ApiErrorSchema,
   })
   async getCurrentSession(@CurrentUser() user: SignedInUser): Promise<CurrentSession> {
-    return this.currentSessionView.for(user);
+    return this.currentSessionView.forUser(user);
   }
 }

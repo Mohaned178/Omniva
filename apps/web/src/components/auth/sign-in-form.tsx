@@ -2,25 +2,22 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SignInRequestSchema, type SignInRequest } from '@omniva/schemas';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { CURRENT_SESSION_QUERY_KEY } from '@/components/app/use-current-session';
 import { Button } from '@/components/ui/button';
 import { FormAlert } from '@/components/ui/form-alert';
 import { FormField } from '@/components/ui/form-field';
 import { api } from '@/lib/api';
-import { APP_HOME_PATH } from '@/lib/routes';
+import { SIGN_UP_PATH } from '@/lib/routes';
 import { useAuthErrorMessage } from './use-auth-error-message';
+import { useEnterApp } from './use-enter-app';
 
 export function SignInForm() {
   const t = useTranslations('auth');
   const errorMessage = useAuthErrorMessage();
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const enterApp = useEnterApp();
   const [failure, setFailure] = useState<string>();
   const {
     register,
@@ -35,9 +32,7 @@ export function SignInForm() {
       setFailure(errorMessage(error?.code));
       return;
     }
-    // A session looked up before signing in is stale; the app shell must ask again.
-    queryClient.removeQueries({ queryKey: CURRENT_SESSION_QUERY_KEY });
-    router.replace(APP_HOME_PATH);
+    enterApp();
   }
 
   return (
@@ -69,7 +64,7 @@ export function SignInForm() {
       </form>
       <p className="mt-6 text-sm">
         {t('signIn.newHere')}{' '}
-        <Link href="/sign-up" className="underline">
+        <Link href={SIGN_UP_PATH} className="underline">
           {t('signIn.signUpLink')}
         </Link>
       </p>

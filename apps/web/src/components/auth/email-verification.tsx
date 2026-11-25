@@ -1,14 +1,13 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { CURRENT_SESSION_QUERY_KEY } from '@/components/app/use-current-session';
 import { FocusedHeading } from '@/components/ui/focused-heading';
 import { api } from '@/lib/api';
-import { APP_HOME_PATH, SIGN_IN_PATH } from '@/lib/routes';
+import { SIGN_IN_PATH } from '@/lib/routes';
+import { useEnterApp } from './use-enter-app';
 
 /**
  * Confirms the token from the emailed link with the API, which signs the user in. It is a
@@ -17,8 +16,7 @@ import { APP_HOME_PATH, SIGN_IN_PATH } from '@/lib/routes';
 export function EmailVerification() {
   const t = useTranslations('auth.verifyEmail');
   const token = useSearchParams().get('token') ?? '';
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const enterApp = useEnterApp();
   const [hasFailed, setHasFailed] = useState(false);
   const hasStarted = useRef(false);
 
@@ -33,11 +31,9 @@ export function EmailVerification() {
         setHasFailed(true);
         return;
       }
-      // A session looked up before signing in is stale; the app shell must ask again.
-      queryClient.removeQueries({ queryKey: CURRENT_SESSION_QUERY_KEY });
-      router.replace(APP_HOME_PATH);
+      enterApp();
     })();
-  }, [token, router, queryClient]);
+  }, [token, enterApp]);
 
   if (!hasFailed) {
     return (

@@ -30,6 +30,7 @@ export class VerificationEmails implements OnApplicationBootstrap {
     const link = new URL(VERIFY_EMAIL_PATH, this.config.webOrigin);
     link.searchParams.set('token', token);
     const job: VerificationEmailJob = { to: email, verificationUrl: link.toString() };
-    await this.jobs.send(VERIFICATION_EMAIL_QUEUE, job);
+    // Each token is one email: a repeated request for the same token queues nothing new.
+    await this.jobs.send(VERIFICATION_EMAIL_QUEUE, job, { uniqueKey: token });
   }
 }
