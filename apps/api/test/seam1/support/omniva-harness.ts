@@ -24,6 +24,8 @@ export interface HarnessOptions {
   readonly environment?: Readonly<Record<string, string>>;
   /** Extra modules mounted in the API, such as test-only probe endpoints. */
   readonly apiModules?: readonly Type[];
+  /** Extra modules mounted in the worker, such as test-only subscribers to record changes. */
+  readonly workerModules?: readonly Type[];
 }
 
 /**
@@ -40,6 +42,7 @@ export class OmnivaHarness {
     private readonly config: AppConfig,
     private readonly apiApp: INestApplication,
     private readonly apiUrl: string,
+    private readonly workerModules: readonly Type[],
   ) {}
 
   static async start(options: HarnessOptions = {}): Promise<OmnivaHarness> {
@@ -54,7 +57,14 @@ export class OmnivaHarness {
     const { port } = (apiApp.getHttpServer() as Server).address() as AddressInfo;
 
     const apiUrl = `http://127.0.0.1:${String(port)}`;
-    const harness = new OmnivaHarness(createApiClient(apiUrl), clock, config, apiApp, apiUrl);
+    const harness = new OmnivaHarness(
+      createApiClient(apiUrl),
+      clock,
+      config,
+      apiApp,
+      apiUrl,
+      options.workerModules ?? [],
+    );
     await harness.startWorker();
     await harness.mail.clear();
     return harness;
@@ -85,7 +95,10 @@ export class OmnivaHarness {
 
   async startWorker(): Promise<void> {
     if (this.worker) return;
-    const worker = await compileWithClock([WorkerModule.forRoot(this.config)], this.clock);
+    const worker = await compileWithClock(
+      [WorkerModule.forRoot(this.config), ...this.workerModules],
+      this.clock,
+    );
     worker.useLogger(false);
     await worker.init();
     this.worker = worker;

@@ -90,7 +90,13 @@ describe('PostgreSQL row-level security, with the application gate bypassed', ()
   it('refuses to write a record into another workspace', async () => {
     const intrusion = scoped.$scopedTransaction({ workspaceId: mine.id }, (tx) =>
       tx.record.create({
-        data: { workspaceId: theirs.id, block: 'note', typeKey: 'note', title: 'Planted' },
+        data: {
+          workspaceId: theirs.id,
+          block: 'note',
+          typeKey: 'note',
+          homeModule: 'productivity',
+          title: 'Planted',
+        },
       }),
     );
 
@@ -164,7 +170,7 @@ describe('PostgreSQL row-level security, with the application gate bypassed', ()
     });
 
     expect(tables.map(({ table }) => table)).toEqual(
-      expect.arrayContaining(['member', 'record', 'workspace']),
+      expect.arrayContaining(['activity_entry', 'member', 'record', 'workspace']),
     );
     expect(
       tables.filter(

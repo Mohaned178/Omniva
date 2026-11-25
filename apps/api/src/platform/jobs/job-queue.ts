@@ -8,6 +8,7 @@ import {
 import { createHash } from 'node:crypto';
 import { PgBoss } from 'pg-boss';
 import { AppConfig } from '../config/app-config.js';
+import type { DatabaseTransaction } from '../database/database-transaction.js';
 import { PROCESS_ROLE, type ProcessRole } from '../process-role.js';
 
 const STOP_TIMEOUT_MS = 10_000;
@@ -78,6 +79,21 @@ export class JobQueue implements OnModuleInit, OnModuleDestroy {
   async send(queue: string, data: object, options: SendOptions = {}): Promise<string | undefined> {
     const id = options.uniqueKey === undefined ? undefined : jobIdFor(queue, options.uniqueKey);
     return (await this.boss.send(queue, data, id === undefined ? {} : { id })) ?? undefined;
+  }
+
+  /**
+   * Queues a job inside the caller's database transaction, so the job is saved with the
+   * change that caused it or not at all (ADR 0008, ADR 0015). The insert runs as the
+   * application role, which the records_core migration lets add jobs.
+   */
+  async sendWithin(transaction: DatabaseTransaction, queue: string, data: object): Promise<void> {
+    await this.boss.send(queue, data, {
+      db: {
+        executeSql: async (text, values = []) => ({
+          rows: await transaction.$queryRawUnsafe<unknown[]>(text, ...values),
+        }),
+      },
+    });
   }
 
   async isCompleted(queue: string, jobId: string): Promise<boolean> {

@@ -20,8 +20,8 @@ export async function sharedWorkspaceWith(members: readonly SharedMember[]): Pro
     for (const { userId, role } of members) {
       const personId = randomUUID();
       await admin.query(
-        `INSERT INTO record (id, workspace_id, block, type_key, title, updated_at)
-         VALUES ($1, $2, 'person', 'person', 'Member', now())`,
+        `INSERT INTO record (id, workspace_id, block, type_key, home_module, title, updated_at)
+         VALUES ($1, $2, 'person', 'person', 'social', 'Member', now())`,
         [personId, workspaceId],
       );
       await admin.query(
