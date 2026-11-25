@@ -33,7 +33,7 @@ export class PlatformModule {
         DatabaseClient,
         {
           provide: ScopedDatabase,
-          useFactory: (database: DatabaseClient) => withWorkspaceScoping(database),
+          useFactory: (database: DatabaseClient): ScopedDatabase => withWorkspaceScoping(database),
           inject: [DatabaseClient],
         },
         RedisClient,

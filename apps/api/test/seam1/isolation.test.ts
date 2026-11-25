@@ -49,8 +49,9 @@ describe('isolation between workspaces', () => {
       const secrets = [...secretsOf(victim), ...(target.secrets ?? [])];
 
       const aimedAtVictim = await intruder.raw(operation.method, operation.path, target);
-      const responses = [{ status: aimedAtVictim.status, body: await aimedAtVictim.text() }];
+      const bodies = [await aimedAtVictim.text()];
       if (operation.minimumRole !== undefined) {
+        expect(aimedAtVictim.status).toBe(404);
         // The same call through the intruder's own workspace must not reach the victim's data
         // its other parameters name.
         const { personalWorkspace } = await currentSessionOf(intruder);
@@ -58,16 +59,12 @@ describe('isolation between workspaces', () => {
           ...target,
           params: { ...target.params, [WORKSPACE_ID_PARAM]: personalWorkspace.id },
         });
-        responses.push({
-          status: throughOwnWorkspace.status,
-          body: await throughOwnWorkspace.text(),
-        });
+        bodies.push(await throughOwnWorkspace.text());
       }
 
-      if (operation.minimumRole !== undefined) expect(responses[0]?.status).toBe(404);
-      expect(
-        responses.flatMap(({ body }) => secrets.filter((secret) => body.includes(secret))),
-      ).toEqual([]);
+      expect(bodies.flatMap((body) => secrets.filter((secret) => body.includes(secret)))).toEqual(
+        [],
+      );
       await target.expectUnharmed?.();
     },
   );

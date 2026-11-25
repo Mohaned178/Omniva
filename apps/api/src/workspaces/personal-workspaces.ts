@@ -27,9 +27,10 @@ export class PersonalWorkspaces {
     if (await this.membershipOf(userId)) return;
 
     // The id is chosen first so the transaction can be scoped to the new workspace (ADR 0009).
+    // Omniva acts here, not the user: they become a member only as the transaction ends.
     const workspaceId = randomUUID();
     try {
-      await this.database.$scopedTransaction({ workspaceId, userId }, async (transaction) => {
+      await this.database.$scopedTransaction({ workspaceId }, async (transaction) => {
         await transaction.workspace.create({
           data: { id: workspaceId, kind: 'personal', personalOwnerUserId: userId },
         });

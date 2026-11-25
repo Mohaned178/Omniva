@@ -53,6 +53,7 @@ Prefer **deep modules**: a small interface hiding substantial behaviour. Add an 
 - Every workspace-owned query runs through the workspace-scoped Prisma client, which sets the workspace for the transaction (ADR 0009, ADR 0016).
 - Every new workspace-owned table ships with its row-level security policy **in the same migration** and an isolation test.
 - Every new endpoint ships with an isolation test: a user from another workspace is refused (ADR 0018).
+- An endpoint inside a workspace names it in its path as `{workspaceId}` and declares its minimum role with `@RequiresRole()`. Its service scopes transactions with the gate's `WorkspaceAccess`, never with a workspace id taken from the request.
 - Identifiers are random and non-guessable.
 - Money is integer minor units plus a currency code. Conversions record rate, date and source, and are labelled approximate.
 - Key dates are calendar dates with precision (exact or month-only) or missing, stored without time or time zone. Timed Events store an instant plus their time zone.

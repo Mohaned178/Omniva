@@ -173,8 +173,10 @@ export interface components {
             email: string;
             password: string;
         };
+        /** Format: uuid */
+        WorkspaceId: string;
         Workspace: {
-            id: string;
+            id: components["schemas"]["WorkspaceId"];
             /** @enum {string} */
             kind: "personal" | "shared";
             /** @enum {string} */
@@ -372,7 +374,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                workspaceId: string;
+                workspaceId: components["schemas"]["WorkspaceId"];
             };
             cookie?: never;
         };

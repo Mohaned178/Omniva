@@ -53,6 +53,25 @@ export default tseslint.config(
     files: ['apps/api/{src,test}/**/*.module.ts'],
     rules: { '@typescript-eslint/no-extraneous-class': 'off' },
   },
+  {
+    // The isolation suite finds every endpoint through the OpenAPI document, so no real
+    // endpoint may leave it (ADR 0018). Test-only probes may.
+    files: ['apps/api/src/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@nestjs/swagger',
+              importNames: ['ApiExcludeController', 'ApiExcludeEndpoint'],
+              message: 'Every endpoint stays in the OpenAPI document the isolation suite checks.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   ...nextCoreWebVitals.map((config) => ({ ...config, files: WEB_FILES })),
   {
     files: WEB_FILES,

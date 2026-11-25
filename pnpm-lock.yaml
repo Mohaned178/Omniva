@@ -47,9 +47,6 @@ importers:
       '@omniva/domain-rules':
         specifier: workspace:*
         version: link:../../packages/domain-rules
-      '@omniva/domain-types':
-        specifier: workspace:*
-        version: link:../../packages/domain-types
       '@omniva/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas

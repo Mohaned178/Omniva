@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Workspace } from '@omniva/schemas';
-import { WorkspaceNotFound } from '../identity/errors/workspace-not-found.js';
+import { WorkspaceNotFound } from './errors/workspace-not-found.js';
 import type { WorkspaceAccess } from '../identity/workspace-access.js';
 import { ScopedDatabase } from '../platform/database/scoped-database.js';
 

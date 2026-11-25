@@ -3,4 +3,3 @@ import { z } from 'zod';
 
 /** What a Member may do in a workspace: Owner, Editor or Viewer (GLOSSARY.md). */
 export const MemberRoleSchema = z.enum(MEMBER_ROLES);
-export type MemberRole = z.infer<typeof MemberRoleSchema>;

@@ -17,5 +17,6 @@ export {
   SignUpRequestSchema,
   type SignUpRequest,
 } from './identity/sign-up-request.js';
-export type { MemberRole } from './workspaces/member-role.js';
+export type { MemberRole } from '@omniva/domain-types';
 export { WorkspaceSchema, type Workspace } from './workspaces/workspace.js';
+export { WorkspaceIdSchema } from './workspaces/workspace-id.js';

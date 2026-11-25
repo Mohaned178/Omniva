@@ -15,6 +15,7 @@ describe('PostgreSQL row-level security, with the application gate bypassed', ()
   let omniva: OmnivaHarness;
   let scoped: ScopedDatabase;
   let unscoped: DatabaseClient;
+  let myUserId: string;
   let mine: CurrentSession['personalWorkspace'];
   let theirs: CurrentSession['personalWorkspace'];
 
@@ -23,8 +24,41 @@ describe('PostgreSQL row-level security, with the application gate bypassed', ()
     scoped = omniva.scopedDatabase();
     unscoped = omniva.unscopedDatabase();
     const [me, them] = await Promise.all([signedInUser(omniva), signedInUser(omniva)]);
-    ({ personalWorkspace: mine } = await currentSessionOf(me));
+    ({
+      user: { id: myUserId },
+      personalWorkspace: mine,
+    } = await currentSessionOf(me));
     ({ personalWorkspace: theirs } = await currentSessionOf(them));
+  });
+
+  it('shows a transaction acting for a user only their own memberships and personal workspace, and no records', async () => {
+    const visible = await scoped.$scopedTransaction({ userId: myUserId }, async (tx) => ({
+      members: await tx.member.findMany({
+        where: { workspaceId: { in: [mine.id, theirs.id] } },
+        select: { workspaceId: true },
+      }),
+      workspaces: await tx.workspace.findMany({
+        where: { id: { in: [mine.id, theirs.id] } },
+        select: { id: true },
+      }),
+      records: await tx.record.count({
+        where: { id: { in: [mine.mePersonId, theirs.mePersonId] } },
+      }),
+    }));
+
+    expect(visible).toEqual({
+      members: [{ workspaceId: mine.id }],
+      workspaces: [{ id: mine.id }],
+      records: 0,
+    });
+  });
+
+  it('refuses a transaction that acts for a user inside a workspace they are not a member of', async () => {
+    const attempt = scoped.$scopedTransaction({ workspaceId: theirs.id, userId: myUserId }, (tx) =>
+      tx.record.count(),
+    );
+
+    await expect(attempt).rejects.toThrow(/not a member/);
   });
   afterAll(async () => {
     await omniva.stop();

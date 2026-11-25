@@ -1,7 +1,12 @@
 import { applyDecorators, HttpStatus, SetMetadata } from '@nestjs/common';
 import { ApiExtension, ApiParam } from '@nestjs/swagger';
-import { ApiErrorSchema, type MemberRole } from '@omniva/schemas';
+import { isRoleAtLeast } from '@omniva/domain-rules';
+import { ApiErrorSchema, WorkspaceIdSchema, type MemberRole } from '@omniva/schemas';
 import { ApiZodResponse } from '../platform/http/api-zod-response.js';
+import { zodComponentRef } from '../platform/http/zod-openapi-components.js';
+
+/** Every member has at least this role. */
+const LOWEST_ROLE: MemberRole = 'viewer';
 
 export const MINIMUM_ROLE = Symbol('MINIMUM_ROLE');
 
@@ -19,14 +24,18 @@ export function RequiresRole(minimum: MemberRole): MethodDecorator {
   return applyDecorators(
     SetMetadata(MINIMUM_ROLE, minimum),
     ApiExtension(MINIMUM_ROLE_EXTENSION, minimum),
-    ApiParam({ name: WORKSPACE_ID_PARAM, type: String }),
+    ApiParam({
+      name: WORKSPACE_ID_PARAM,
+      // ApiParam takes no bare $ref; a one-item allOf points at the shared schema all the same.
+      schema: { allOf: [{ $ref: zodComponentRef(WorkspaceIdSchema) }] },
+    }),
     ApiZodResponse({
       status: HttpStatus.NOT_FOUND,
       description: 'The workspace does not exist, or the user is not a member of it',
       schema: ApiErrorSchema,
     }),
-    // Every member is at least a Viewer, so only a higher minimum can refuse a member.
-    ...(minimum === 'viewer'
+    // A minimum every member meets can never refuse one.
+    ...(isRoleAtLeast(LOWEST_ROLE, minimum)
       ? []
       : [
           ApiZodResponse({

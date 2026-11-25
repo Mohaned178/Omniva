@@ -1,9 +1,14 @@
 import type { PrismaClient } from '../../generated/prisma/client.js';
 import type { DatabaseTransaction, TransactionScope } from './database-transaction.js';
+import { OutsideMembership } from './outside-membership.js';
 import { RowLevelSecurityNotEnforced } from './row-level-security-not-enforced.js';
 
 interface EnteredScope {
   readonly canBypassRowLevelSecurity: boolean | null;
+}
+
+interface Membership {
+  readonly isMember: boolean;
 }
 
 /**
@@ -21,6 +26,7 @@ export function withWorkspaceScoping(client: PrismaClient) {
       ): Promise<T> {
         return client.$transaction(async (transaction) => {
           await enterScope(transaction, scope);
+          await confirmMembership(transaction, scope);
           return work(transaction);
         });
       },
@@ -43,5 +49,25 @@ async function enterScope(
              AS "canBypassRowLevelSecurity"`;
   if (entered?.canBypassRowLevelSecurity !== false) {
     throw new RowLevelSecurityNotEnforced('The database role can bypass row-level security.');
+  }
+}
+
+/**
+ * A transaction acting for a user inside a workspace runs only while that user is a member
+ * of it. The gate checked this already; checking again here keeps the database layer from
+ * trusting a workspace the gate never verified, such as one taken from a request body.
+ * Row-level security has to see the scope first, so this is a second statement.
+ */
+async function confirmMembership(
+  transaction: DatabaseTransaction,
+  { workspaceId, userId }: TransactionScope,
+): Promise<void> {
+  if (workspaceId === undefined || userId === undefined) return;
+  const [membership] = await transaction.$queryRaw<Membership[]>`
+    SELECT EXISTS (
+      SELECT 1 FROM member WHERE workspace_id = ${workspaceId} AND user_id = ${userId}
+    ) AS "isMember"`;
+  if (membership?.isMember !== true) {
+    throw new OutsideMembership('The user is not a member of the workspace.');
   }
 }

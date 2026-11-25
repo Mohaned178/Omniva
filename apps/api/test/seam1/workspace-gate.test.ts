@@ -33,16 +33,7 @@ describe('the workspace gate', () => {
   });
 
   it('shows each member of a shared workspace their own role in it', async () => {
-    const [owner, editor, viewer] = await Promise.all([
-      signedInUser(omniva),
-      signedInUser(omniva),
-      signedInUser(omniva),
-    ]);
-    const workspaceId = await sharedWorkspaceWith([
-      { userId: (await currentSessionOf(owner)).user.id, role: 'owner' },
-      { userId: (await currentSessionOf(editor)).user.id, role: 'editor' },
-      { userId: (await currentSessionOf(viewer)).user.id, role: 'viewer' },
-    ]);
+    const { workspaceId, owner, editor, viewer } = await sharedWorkspaceOfThree(omniva);
 
     const roles = await Promise.all(
       [owner, editor, viewer].map(async (member) => (await getWorkspace(member, workspaceId)).data),
@@ -61,24 +52,18 @@ describe('the workspace gate', () => {
 
     const someoneElses = await getWorkspace(stranger, personalWorkspace.id);
     const nonexistent = await getWorkspace(stranger, randomUUID());
+    const impossible = await getWorkspace(stranger, 'not-a-workspace');
 
     expect(someoneElses.response.status).toBe(404);
     expect(someoneElses.error).toMatchObject({ code: 'WORKSPACE_NOT_FOUND' });
-    expect(someoneElses.error).toEqual(nonexistent.error);
-    expect(nonexistent.response.status).toBe(404);
+    for (const lookalike of [nonexistent, impossible]) {
+      expect(lookalike.response.status).toBe(404);
+      expect(lookalike.error).toEqual(someoneElses.error);
+    }
   });
 
   it('lets a member do only what their role allows', async () => {
-    const [owner, editor, viewer] = await Promise.all([
-      signedInUser(omniva),
-      signedInUser(omniva),
-      signedInUser(omniva),
-    ]);
-    const workspaceId = await sharedWorkspaceWith([
-      { userId: (await currentSessionOf(owner)).user.id, role: 'owner' },
-      { userId: (await currentSessionOf(editor)).user.id, role: 'editor' },
-      { userId: (await currentSessionOf(viewer)).user.id, role: 'viewer' },
-    ]);
+    const { workspaceId, owner, editor, viewer } = await sharedWorkspaceOfThree(omniva);
     const attempt = async (member: Visitor, action: 'editor-action' | 'owner-action') => {
       const response = await member.raw('post', `${GATE_PROBE_PATH}/${action}`, {
         params: { workspaceId },
@@ -110,3 +95,18 @@ describe('the workspace gate', () => {
     expect(response.status).toBe(500);
   });
 });
+
+/** A shared workspace with an Owner, an Editor and a Viewer, each signed in. */
+async function sharedWorkspaceOfThree(omniva: OmnivaHarness) {
+  const [owner, editor, viewer] = await Promise.all([
+    signedInUser(omniva),
+    signedInUser(omniva),
+    signedInUser(omniva),
+  ]);
+  const workspaceId = await sharedWorkspaceWith([
+    { userId: (await currentSessionOf(owner)).user.id, role: 'owner' },
+    { userId: (await currentSessionOf(editor)).user.id, role: 'editor' },
+    { userId: (await currentSessionOf(viewer)).user.id, role: 'viewer' },
+  ]);
+  return { workspaceId, owner, editor, viewer };
+}

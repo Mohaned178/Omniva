@@ -10,7 +10,7 @@ export interface Victim {
 }
 
 /** How the intruder aims one endpoint at the victim's data. */
-export interface Target extends RawRequest {
+interface Target extends RawRequest {
   /** What of the victim's, beyond their ids and email address, must never reach the intruder. */
   readonly secrets?: readonly string[];
   /** Fails when the intruder's call changed anything of the victim's. */
@@ -18,7 +18,7 @@ export interface Target extends RawRequest {
 }
 
 /** Gives the victim whatever data the endpoint could reach, and says how to aim at it. */
-export type IsolationCase = (victim: Victim) => Promise<Target>;
+type IsolationCase = (victim: Victim) => Promise<Target>;
 
 const INTRUDERS_PASSWORD = 'an intruder chose this password';
 
