@@ -1,2 +1,13 @@
 # graphify output is rebuilt locally by every agent (`graphify update .`, AST-only, free)
 graphify-out/
+
+node_modules/
+dist/
+.next/
+next-env.d.ts
+coverage/
+*.tsbuildinfo
+.env
+.env.local
+# Prisma client is generated on install (`pnpm generate`)
+apps/api/src/generated/

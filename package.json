@@ -1,0 +1,36 @@
+{
+  "name": "omniva",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm services:up && pnpm build:packages && pnpm --filter @omniva/api db:migrate && pnpm --parallel --filter @omniva/api --filter @omniva/web run dev",
+    "services:up": "docker compose up -d --wait postgres redis mailpit minio && docker compose up -d clamav",
+    "services:down": "docker compose down",
+    "build": "pnpm -r build",
+    "build:packages": "pnpm --filter \"./packages/*\" build",
+    "generate": "pnpm --filter @omniva/api db:generate && pnpm --filter @omniva/domain-types --filter @omniva/schemas build && pnpm --filter @omniva/api openapi:generate && pnpm --filter @omniva/api-client generate && pnpm build:packages",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm test:seam2 && pnpm test:seam1",
+    "test:seam1": "pnpm --filter @omniva/api test:seam1",
+    "test:seam2": "pnpm --filter @omniva/domain-rules test",
+    "check:migrations": "node scripts/check-migrations-forward-only.mjs",
+    "check:generated": "pnpm generate && git diff --exit-code -- apps/api/openapi.json packages/api-client/src/generated",
+    "postinstall": "pnpm --filter @omniva/api db:generate"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.6",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
+    "prettier": "3.10.1",
+    "typescript-eslint": "8.74.0"
+  }
+}

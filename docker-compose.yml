@@ -1,0 +1,74 @@
+# Local development services (spec 0001, Operations). Host ports avoid the defaults so a
+# natively installed PostgreSQL or Redis keeps working; override them in .env if needed.
+name: omniva
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: omniva
+      POSTGRES_PASSWORD: omniva
+      POSTGRES_DB: omniva
+    ports:
+      - '${OMNIVA_POSTGRES_PORT:-55432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U omniva -d omniva']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Valkey matches Render Key Value in production (ADR 0017, ADR 0020).
+  redis:
+    image: valkey/valkey:8-alpine
+    ports:
+      - '${OMNIVA_REDIS_PORT:-56379}:6379'
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  minio:
+    # MinIO stopped publishing official images in 2025; pgsty/minio is a community build of
+    # the same open-source server. Files go through the storage port, so R2 replaces it later.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: omniva
+      MINIO_ROOT_PASSWORD: omniva-dev-secret
+    ports:
+      - '${OMNIVA_MINIO_PORT:-59000}:9000'
+      - '${OMNIVA_MINIO_CONSOLE_PORT:-59001}:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:9000/minio/health/live']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - '${OMNIVA_SMTP_PORT:-51025}:1025'
+      - '${OMNIVA_MAILPIT_UI_PORT:-58025}:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # ClamAV downloads its signatures on first start, which takes a few minutes.
+  clamav:
+    image: clamav/clamav:stable
+    ports:
+      - '${OMNIVA_CLAMAV_PORT:-53310}:3310'
+    volumes:
+      - clamav-data:/var/lib/clamav
+
+volumes:
+  postgres-data:
+  minio-data:
+  clamav-data:
