@@ -4,6 +4,8 @@ import { Clock } from './clock/clock.js';
 import { SystemClock } from './clock/system-clock.js';
 import { AppConfig } from './config/app-config.js';
 import { DatabaseClient } from './database/database-client.js';
+import { EmailSender } from './email/email-sender.js';
+import { SmtpEmailSender } from './email/smtp-email-sender.js';
 import { JobQueue } from './jobs/job-queue.js';
 import { PROCESS_ROLE, type ProcessRole } from './process-role.js';
 
@@ -12,7 +14,10 @@ export interface PlatformOptions {
   readonly role: ProcessRole;
 }
 
-/** Infrastructure shared by every capability module: config, clock, database, Redis, jobs. */
+/**
+ * Infrastructure shared by every capability module: config, clock, database, Redis, jobs and
+ * email.
+ */
 @Global()
 @Module({})
 export class PlatformModule {
@@ -26,8 +31,9 @@ export class PlatformModule {
         DatabaseClient,
         RedisClient,
         JobQueue,
+        { provide: EmailSender, useClass: SmtpEmailSender },
       ],
-      exports: [AppConfig, Clock, DatabaseClient, RedisClient, JobQueue],
+      exports: [AppConfig, Clock, DatabaseClient, RedisClient, JobQueue, EmailSender],
     };
   }
 }

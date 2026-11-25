@@ -191,16 +191,58 @@
     }
   },
   "auth": {
+    "email": "Email address",
+    "password": "Password",
+    "backHome": "Back to the home page",
+    "errors": {
+      "emailInvalid": "Enter an email address like name@example.com.",
+      "passwordRequired": "Enter your password.",
+      "passwordTooShort": "Use at least {min} characters.",
+      "passwordTooLong": "Use at most {max} characters.",
+      "invalidCredentials": "That email address and password don’t match. Check them and try again.",
+      "emailNotVerified": "Verify your email address first. We’ve sent you a new link.",
+      "untrustedOrigin": "Open Omniva from its own address and try again.",
+      "unexpected": "Something went wrong on our side. Try again in a moment."
+    },
     "signUp": {
       "title": "Sign up",
-      "heading": "Create your account",
-      "body": "Sign-up is not open yet."
+      "heading": "Sign up for Omniva",
+      "intro": "Your email address and a password are all you need.",
+      "passwordHint": "At least {min} characters. A few words together are easy to remember.",
+      "submit": "Sign up",
+      "submitting": "Signing up…",
+      "alreadySignedUp": "Already signed up?",
+      "signInLink": "Sign in",
+      "checkEmail": {
+        "heading": "Check your email",
+        "body": "We’ve sent a link to {email}. Open it to verify your address and sign in. The link works for 24 hours."
+      }
     },
     "signIn": {
       "title": "Sign in",
       "heading": "Sign in to Omniva",
-      "body": "Sign-in is not open yet."
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "newHere": "New to Omniva?",
+      "signUpLink": "Sign up"
     },
-    "backHome": "Back to the home page"
+    "verifyEmail": {
+      "title": "Verify your email",
+      "verifying": "Verifying your email address…",
+      "failedHeading": "This link doesn’t work any more",
+      "failedBody": "It may have expired or already been used. Sign in and we’ll send you a new one.",
+      "signInLink": "Sign in"
+    }
+  },
+  "appShell": {
+    "loading": "Loading…",
+    "unavailable": "Omniva can’t be reached right now. Try again in a moment.",
+    "signedInAs": "Signed in as {email}",
+    "signOut": "Sign out",
+    "home": {
+      "title": "Home",
+      "heading": "You’re signed in",
+      "body": "Your personal workspace is ready. Everything you add here is private to you."
+    }
   }
 }

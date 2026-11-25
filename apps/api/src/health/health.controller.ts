@@ -2,10 +2,12 @@ import { Controller, Get, Header, HttpStatus, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HealthReportSchema, type HealthReport } from '@omniva/schemas';
 import type { Response } from 'express';
+import { Public } from '../identity/public.decorator.js';
 import { ApiZodResponse } from '../platform/http/api-zod-response.js';
 import { HealthCheck } from './health-check.js';
 
 /** Public and content-free, so uptime monitors and the health page can read it. */
+@Public()
 @ApiTags('health')
 @Controller('health')
 export class HealthController {

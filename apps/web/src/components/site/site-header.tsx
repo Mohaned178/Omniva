@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/button-link';
+import { SIGN_IN_PATH, SIGN_UP_PATH } from '@/lib/routes';
 
 const NAV = [
   { href: '/features', key: 'features' },
@@ -31,10 +32,10 @@ export function SiteHeader() {
           </ul>
         </nav>
         <div className="flex items-center gap-3 text-sm">
-          <Link href="/sign-in" className="hover:underline">
+          <Link href={SIGN_IN_PATH} className="hover:underline">
             {t('signIn')}
           </Link>
-          <ButtonLink href="/sign-up" className="px-3 py-1.5">
+          <ButtonLink href={SIGN_UP_PATH} className="px-3 py-1.5">
             {t('getStarted')}
           </ButtonLink>
         </div>

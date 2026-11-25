@@ -3,14 +3,17 @@ import type { AddressInfo } from 'node:net';
 import type { DynamicModule, INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { createApiClient, type ApiClient } from '@omniva/api-client';
+import type { OpenAPIObject } from '@nestjs/swagger';
 import { ApiModule } from '../../../src/api.module.js';
 import { configureApi } from '../../../src/configure-api.js';
+import { buildOpenApiDocument } from '../../../src/openapi/build-openapi-document.js';
 import type { AppConfig } from '../../../src/platform/config/app-config.js';
 import { Clock } from '../../../src/platform/clock/clock.js';
 import { WorkerModule } from '../../../src/worker.module.js';
 import { ControllableClock } from './controllable-clock.js';
 import { MailCatcher } from './mail-catcher.js';
 import { testConfig } from './test-environment.js';
+import { Visitor } from './visitor.js';
 
 const HARNESS_START = new Date('2027-03-01T09:00:00.000Z');
 
@@ -32,6 +35,7 @@ export class OmnivaHarness {
     readonly clock: ControllableClock,
     private readonly config: AppConfig,
     private readonly apiApp: INestApplication,
+    private readonly apiUrl: string,
   ) {}
 
   static async start(options: HarnessOptions = {}): Promise<OmnivaHarness> {
@@ -47,15 +51,21 @@ export class OmnivaHarness {
     await apiApp.listen(0, '127.0.0.1');
     const { port } = (apiApp.getHttpServer() as Server).address() as AddressInfo;
 
-    const harness = new OmnivaHarness(
-      createApiClient(`http://127.0.0.1:${String(port)}`),
-      clock,
-      config,
-      apiApp,
-    );
+    const apiUrl = `http://127.0.0.1:${String(port)}`;
+    const harness = new OmnivaHarness(createApiClient(apiUrl), clock, config, apiApp, apiUrl);
     await harness.startWorker();
     await harness.mail.clear();
     return harness;
+  }
+
+  /** A new person using Omniva through the web app, with no session yet. */
+  visitor(): Visitor {
+    return new Visitor(this.apiUrl, this.config.webOrigin);
+  }
+
+  /** The API's OpenAPI document, built from the running application's routes. */
+  openApiDocument(): OpenAPIObject {
+    return buildOpenApiDocument(this.apiApp);
   }
 
   async startWorker(): Promise<void> {

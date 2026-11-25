@@ -11,3 +11,163 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ── Identity & Access ─────────────────────────────────────────────────────────────────────
+// Better Auth's tables (ADR 0016). Field names follow Better Auth; columns are snake_case.
+
+/// A human who signs in to Omniva.
+model User {
+  id            String   @id
+  /// Better Auth requires a name; Omniva asks for none at sign-up, so it starts empty.
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @map("email_verified")
+  image         String?
+  createdAt     DateTime @map("created_at")
+  updatedAt     DateTime @map("updated_at")
+
+  sessions    Session[]
+  credentials UserCredential[]
+  memberships Member[]
+
+  @@map("user")
+}
+
+/// A signed-in session. PostgreSQL is the source of truth for sessions (spec, D3).
+model Session {
+  id        String   @id
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @map("created_at")
+  updatedAt DateTime @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+/// How a User proves who they are: for now only email and password. Better Auth calls this
+/// an "account"; in Omniva an Account is only ever a financial account (GLOSSARY.md).
+model UserCredential {
+  id                    String    @id
+  userId                String    @map("user_id")
+  accountId             String    @map("provider_subject_id")
+  providerId            String    @map("provider_id")
+  password              String?
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  createdAt             DateTime  @map("created_at")
+  updatedAt             DateTime  @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_credential")
+}
+
+/// Short-lived tokens Better Auth issues, such as password-reset links.
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @map("created_at")
+  updatedAt  DateTime @map("updated_at")
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ── Workspaces & Membership ───────────────────────────────────────────────────────────────
+
+enum WorkspaceKind {
+  personal
+  shared
+
+  @@map("workspace_kind")
+}
+
+enum MemberRole {
+  owner
+  editor
+  viewer
+
+  @@map("member_role")
+}
+
+/// The space that owns a set of records (ADR 0002).
+model Workspace {
+  id                  String        @id @default(uuid())
+  kind                WorkspaceKind
+  /// Set only on a personal workspace, so each User has exactly one.
+  personalOwnerUserId String?       @unique @map("personal_owner_user_id")
+  createdAt           DateTime      @default(now()) @map("created_at")
+
+  members Member[]
+  records Record[]
+
+  @@map("workspace")
+}
+
+/// A User's participation in a workspace, represented there by a Person record.
+model Member {
+  id             String     @id @default(uuid())
+  workspaceId    String     @map("workspace_id")
+  userId         String     @map("user_id")
+  role           MemberRole
+  personRecordId String     @unique @map("person_record_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  person    Record    @relation(fields: [personRecordId], references: [id])
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@map("member")
+}
+
+// ── Records core ──────────────────────────────────────────────────────────────────────────
+
+/// The ten building blocks every record is built from (GLOSSARY.md).
+enum Block {
+  item
+  document
+  money_record
+  obligation
+  event
+  task
+  person
+  note
+  plan
+  measurement
+
+  @@map("block")
+}
+
+/// Any single entry in Omniva. Only the anatomy Me needs exists so far; the Records core
+/// ticket adds the rest of it.
+model Record {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  block       Block
+  /// The record's Type, which decides its home module.
+  typeKey     String   @map("type_key")
+  title       String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  member    Member?
+
+  @@index([workspaceId])
+  @@map("record")
+}
