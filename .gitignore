@@ -11,3 +11,7 @@ coverage/
 .env.local
 # Prisma client is generated on install (`pnpm generate`)
 apps/api/src/generated/
+
+# Playwright
+playwright-report/
+test-results/
