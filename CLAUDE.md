@@ -13,8 +13,9 @@ Tickets are GitHub issues #2–#36, sub-issues of the spec #1. Each ticket names
 5. **Close the isolation gaps.** Every new workspace-owned table has its row-level security policy in the same migration; every new endpoint has an isolation test. Done when the isolation suite passes with the new endpoints listed.
 6. **Refactor against `CODING_STANDARDS.md`** with the tests green. Done when every rule in it holds for the diff.
 7. **Verify locally:** lint, type checks and every test seam pass; run `graphify update .`.
-8. **Review with `/code-review`** against the ticket. Done when the Standards and Spec reports show no hard violations, and each judgement call is either fixed or explained in the PR.
+8. **Review with `/code-review`** against the ticket. Done when the Standards and Spec reports show no hard violations, and each judgement call is either fixed or explained in the PR. Do not use CodeRabbit: don't request it, wait for it or act on its comments. `/code-review` is the review.
 9. **Open the pull request** with `Closes #<n>`, shaped by `/pr`, acceptance criteria ticked. Done when CI is green. The user reviews and merges.
+10. **Tick the boxes.** Once CI is green, tick every acceptance-criterion checkbox on the ticket's issue (`gh issue edit <n> --body-file …`), so the issue matches the PR.
 
 ## While working
 
