@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PUBLIC_OPERATION_EXTENSION } from '../../src/identity/public.decorator.js';
+import { apiOperations, type ApiOperation } from './support/api-operations.js';
 import { OmnivaHarness } from './support/omniva-harness.js';
 import { PASSWORD, signedInUser, verifiedUser } from './support/users.js';
 
@@ -8,21 +8,12 @@ const ANOTHER_SITE = 'https://another-site.example';
 /** The only endpoints a visitor may use without a session (spec, D3). */
 const PUBLIC_OPERATIONS = ['getHealth', 'signUp', 'verifyEmail', 'signIn'];
 
-const HTTP_METHODS = ['get', 'put', 'post', 'patch', 'delete'] as const;
-
-interface Operation {
-  readonly method: (typeof HTTP_METHODS)[number];
-  readonly path: string;
-  readonly operationId: string;
-  readonly isPublic: boolean;
-}
-
 describe('access to the API', () => {
   let omniva: OmnivaHarness;
-  let operations: readonly Operation[];
+  let operations: readonly ApiOperation[];
   beforeAll(async () => {
     omniva = await OmnivaHarness.start();
-    operations = everyOperation(omniva);
+    operations = apiOperations(omniva.openApiDocument());
   });
   afterAll(async () => {
     await omniva.stop();
@@ -93,21 +84,3 @@ describe('access to the API', () => {
     );
   });
 });
-
-/** Every operation in the API's OpenAPI document, so a new endpoint is covered automatically. */
-function everyOperation(omniva: OmnivaHarness): readonly Operation[] {
-  return Object.entries(omniva.openApiDocument().paths).flatMap(([path, item]) =>
-    HTTP_METHODS.flatMap((method) => {
-      const operation = item[method];
-      if (!operation) return [];
-      return [
-        {
-          method,
-          path,
-          operationId: operation.operationId ?? `${method} ${path}`,
-          isPublic: Reflect.get(operation, PUBLIC_OPERATION_EXTENSION) === true,
-        },
-      ];
-    }),
-  );
-}

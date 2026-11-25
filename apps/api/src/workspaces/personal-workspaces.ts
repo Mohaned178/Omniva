@@ -1,8 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import type { MemberRole } from '@omniva/schemas';
-import { DatabaseClient } from '../platform/database/database-client.js';
-import { scopeTransaction } from '../platform/database/database-transaction.js';
+import { ScopedDatabase } from '../platform/database/scoped-database.js';
 import { PersonRecords } from '../records/person-records.js';
 
 export interface PersonalMembership {
@@ -15,7 +14,7 @@ export interface PersonalMembership {
 @Injectable()
 export class PersonalWorkspaces {
   constructor(
-    private readonly database: DatabaseClient,
+    private readonly database: ScopedDatabase,
     private readonly personRecords: PersonRecords,
   ) {}
 
@@ -28,10 +27,10 @@ export class PersonalWorkspaces {
     if (await this.membershipOf(userId)) return;
 
     // The id is chosen first so the transaction can be scoped to the new workspace (ADR 0009).
+    // Omniva acts here, not the user: they become a member only as the transaction ends.
     const workspaceId = randomUUID();
     try {
-      await this.database.$transaction(async (transaction) => {
-        await scopeTransaction(transaction, { workspaceId, userId });
+      await this.database.$scopedTransaction({ workspaceId }, async (transaction) => {
         await transaction.workspace.create({
           data: { id: workspaceId, kind: 'personal', personalOwnerUserId: userId },
         });
@@ -49,13 +48,12 @@ export class PersonalWorkspaces {
 
   /** The user's membership of their personal workspace, if it exists yet. */
   async membershipOf(userId: string): Promise<PersonalMembership | undefined> {
-    const member = await this.database.$transaction(async (transaction) => {
-      await scopeTransaction(transaction, { userId });
-      return transaction.member.findFirst({
+    const member = await this.database.$scopedTransaction({ userId }, (transaction) =>
+      transaction.member.findFirst({
         where: { userId, workspace: { personalOwnerUserId: userId } },
         select: { workspaceId: true, role: true, personRecordId: true },
-      });
-    });
+      }),
+    );
     if (!member) return undefined;
     return {
       workspaceId: member.workspaceId,

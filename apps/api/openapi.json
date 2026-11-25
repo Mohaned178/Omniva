@@ -198,6 +198,62 @@
         ],
         "x-omniva-public": true
       }
+    },
+    "/v1/workspaces/{workspaceId}": {
+      "get": {
+        "operationId": "getWorkspace",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "A workspace the user is a member of, with their role in it",
+        "tags": [
+          "workspaces"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      }
     }
   },
   "info": {
@@ -393,6 +449,40 @@
         "required": [
           "email",
           "password"
+        ],
+        "additionalProperties": false
+      },
+      "WorkspaceId": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+      },
+      "Workspace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/WorkspaceId"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "shared"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "role"
         ],
         "additionalProperties": false
       }

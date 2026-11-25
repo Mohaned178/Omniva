@@ -4,6 +4,8 @@ import { Clock } from './clock/clock.js';
 import { SystemClock } from './clock/system-clock.js';
 import { AppConfig } from './config/app-config.js';
 import { DatabaseClient } from './database/database-client.js';
+import { ScopedDatabase } from './database/scoped-database.js';
+import { withWorkspaceScoping } from './database/workspace-scoping.js';
 import { EmailSender } from './email/email-sender.js';
 import { SmtpEmailSender } from './email/smtp-email-sender.js';
 import { JobQueue } from './jobs/job-queue.js';
@@ -29,11 +31,24 @@ export class PlatformModule {
         { provide: PROCESS_ROLE, useValue: role },
         { provide: Clock, useClass: SystemClock },
         DatabaseClient,
+        {
+          provide: ScopedDatabase,
+          useFactory: (database: DatabaseClient): ScopedDatabase => withWorkspaceScoping(database),
+          inject: [DatabaseClient],
+        },
         RedisClient,
         JobQueue,
         { provide: EmailSender, useClass: SmtpEmailSender },
       ],
-      exports: [AppConfig, Clock, DatabaseClient, RedisClient, JobQueue, EmailSender],
+      exports: [
+        AppConfig,
+        Clock,
+        DatabaseClient,
+        ScopedDatabase,
+        RedisClient,
+        JobQueue,
+        EmailSender,
+      ],
     };
   }
 }
