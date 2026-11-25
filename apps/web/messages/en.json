@@ -239,10 +239,102 @@
     "unavailable": "Omniva can’t be reached right now. Try again in a moment.",
     "signedInAs": "Signed in as {email}",
     "signOut": "Sign out",
+    "nav": {
+      "label": "Modules"
+    },
     "home": {
       "title": "Home",
       "heading": "You’re signed in",
       "body": "Your personal workspace is ready. Everything you add here is private to you."
+    }
+  },
+  "modules": {
+    "productivity": "Productivity",
+    "finance": "Finance & Wealth",
+    "health": "Health & Fitness",
+    "knowledge": "Knowledge & Learning",
+    "career": "Career & Professional",
+    "assets": "Assets & Possessions",
+    "social": "Social & Relationships",
+    "travel": "Travel & Experiences",
+    "home": "Home Management",
+    "subscriptions": "Subscriptions & Services",
+    "documents": "Documents & Files",
+    "entertainment": "Entertainment & Lifestyle"
+  },
+  "records": {
+    "loading": "Loading…",
+    "unavailable": "This can’t be shown right now. Try again in a moment.",
+    "notFound": "This record doesn’t exist, or it isn’t in your workspace.",
+    "titles": {
+      "record": "Record",
+      "newRecord": "New record",
+      "editRecord": "Edit record",
+      "archived": "Archived"
+    },
+    "list": {
+      "empty": "Nothing here yet.",
+      "archivedHeading": "Archived",
+      "showArchived": "Show archived",
+      "showInUse": "Back to {module}"
+    },
+    "page": {
+      "typeAndState": "{type} · {state}",
+      "archived": "Archived",
+      "details": "Details",
+      "noDetails": "No details yet.",
+      "edit": "Edit",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "actionFailed": "That didn’t work. Try again in a moment."
+    },
+    "lifecycle": {
+      "owned": "Owned",
+      "disposed": "Disposed",
+      "active": "Active",
+      "ending": "Ending",
+      "ended": "Ended",
+      "valid": "Valid",
+      "expired": "Expired",
+      "open": "Open",
+      "done": "Done",
+      "upcoming": "Upcoming",
+      "in_progress": "In progress",
+      "past": "Past"
+    },
+    "history": {
+      "heading": "History",
+      "entry": "{action, select, created {Created} updated {Edited} archived {Archived} other {Unarchived}} {actor, select, you {by you} omniva {by Omniva} other {by another member}}, {time}"
+    },
+    "form": {
+      "editHeading": "Edit {title}",
+      "name": "Name",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Give it a name.",
+        "tooLong": "That’s too long.",
+        "number": "Enter a number.",
+        "date": "Enter a date.",
+        "saveFailed": "That didn’t save. Check the details and try again."
+      }
+    }
+  },
+  "types": {
+    "vehicle": {
+      "name": "Vehicle",
+      "add": "Add a vehicle",
+      "new": "New vehicle",
+      "fields": {
+        "make": "Make",
+        "model": "Model",
+        "year": "Year",
+        "registrationNumber": "Registration number",
+        "purchasedOn": "Bought on",
+        "registrationExpiresOn": "Registration expires",
+        "inspectionDueOn": "Next inspection due"
+      }
     }
   }
 }

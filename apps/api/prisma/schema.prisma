@@ -113,8 +113,9 @@ model Workspace {
   personalOwnerUserId String?       @unique @map("personal_owner_user_id")
   createdAt           DateTime      @default(now()) @map("created_at")
 
-  members Member[]
-  records Record[]
+  members         Member[]
+  records         Record[]
+  activityEntries ActivityEntry[]
 
   @@map("workspace")
 }
@@ -155,21 +156,99 @@ enum Block {
   @@map("block")
 }
 
-/// Any single entry in Omniva. Only the anatomy Me needs exists so far; the Records core
-/// ticket adds the rest of it.
-model Record {
-  id          String   @id @default(uuid())
-  workspaceId String   @map("workspace_id")
-  block       Block
-  /// The record's Type, which decides its home module.
-  typeKey     String   @map("type_key")
-  title       String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+/// The twelve life areas that give records a home (GLOSSARY.md, Module).
+enum LifeModule {
+  productivity
+  finance
+  health
+  knowledge
+  career
+  assets
+  social
+  travel
+  home
+  subscriptions
+  documents
+  entertainment
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  member    Member?
+  @@map("life_module")
+}
+
+/// Where a record stands in its own life, by building block (GLOSSARY.md).
+enum LifecycleState {
+  owned
+  disposed
+  active
+  ending
+  ended
+  valid
+  expired
+  open
+  done
+  upcoming
+  in_progress
+  past
+
+  @@map("lifecycle_state")
+}
+
+/// Any single entry in Omniva (ADR 0001). The shared anatomy sits in fixed columns; the
+/// Type-specific fields sit in `fields`, validated against the Type definition (ADR 0011).
+model Record {
+  id             String          @id @default(uuid())
+  workspaceId    String          @map("workspace_id")
+  block          Block
+  /// The record's Type, which decides its home module.
+  typeKey        String          @map("type_key")
+  homeModule     LifeModule      @map("home_module")
+  title          String
+  /// Null for a building block with no lifecycle, such as a Person.
+  lifecycleState LifecycleState? @map("lifecycle_state")
+  isArchived     Boolean         @default(false) @map("is_archived")
+  fields         Json            @default("{}")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  member          Member?
+  activityEntries ActivityEntry[]
 
   @@index([workspaceId])
+  @@index([workspaceId, homeModule])
   @@map("record")
+}
+
+// ── History ───────────────────────────────────────────────────────────────────────────────
+
+/// What happened to a record, as the Activity Timeline tells it.
+enum ActivityAction {
+  created
+  updated
+  archived
+  unarchived
+
+  @@map("activity_action")
+}
+
+/// One change on the Activity Timeline, written in the same transaction as the change itself
+/// (ADR 0008). It refers to the record rather than copying its content (ADR 0004).
+model ActivityEntry {
+  id          String         @id @default(uuid())
+  workspaceId String         @map("workspace_id")
+  recordId    String?        @map("record_id")
+  action      ActivityAction
+  /// The user who made the change; null when Omniva made it. A user, not a Member, because
+  /// "created by" is history and outlives the membership (ADR 0002).
+  actorUserId String?        @map("actor_user_id")
+  occurredAt  DateTime       @map("occurred_at")
+  /// Orders entries that share an occurredAt, in the order they were written. The database's
+  /// own clock, never shown; numbering them from a sequence would make them guessable.
+  recordedAt  DateTime       @default(dbgenerated("clock_timestamp()")) @map("recorded_at") @db.Timestamp(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record    Record?   @relation(fields: [recordId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, occurredAt])
+  @@index([recordId])
+  @@map("activity_entry")
 }

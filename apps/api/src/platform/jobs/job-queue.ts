@@ -8,6 +8,7 @@ import {
 import { createHash } from 'node:crypto';
 import { PgBoss } from 'pg-boss';
 import { AppConfig } from '../config/app-config.js';
+import type { DatabaseTransaction } from '../database/database-transaction.js';
 import { PROCESS_ROLE, type ProcessRole } from '../process-role.js';
 
 const STOP_TIMEOUT_MS = 10_000;
@@ -27,6 +28,12 @@ export interface SendOptions {
 
 export interface WorkOptions {
   readonly pollingIntervalSeconds: number;
+  /**
+   * How many jobs one fetch takes (default 1). pg-boss waits a polling interval between
+   * fetches, so a queue that can build a backlog takes several at a time. If the handler fails
+   * on one, the whole batch is retried, so its handler must be idempotent (§8).
+   */
+  readonly batchSize?: number;
 }
 
 /**
@@ -80,6 +87,21 @@ export class JobQueue implements OnModuleInit, OnModuleDestroy {
     return (await this.boss.send(queue, data, id === undefined ? {} : { id })) ?? undefined;
   }
 
+  /**
+   * Queues a job inside the caller's database transaction, so the job is saved with the
+   * change that caused it or not at all (ADR 0008, ADR 0015). The insert runs as the
+   * application role, which the records_core migration lets add jobs.
+   */
+  async sendWithin(transaction: DatabaseTransaction, queue: string, data: object): Promise<void> {
+    await this.boss.send(queue, data, {
+      db: {
+        executeSql: async (text, values = []) => ({
+          rows: await transaction.$queryRawUnsafe<unknown[]>(text, ...values),
+        }),
+      },
+    });
+  }
+
   async isCompleted(queue: string, jobId: string): Promise<boolean> {
     const [job] = await this.boss.findJobs(queue, { id: jobId });
     return job?.state === 'completed';
@@ -97,7 +119,10 @@ export class JobQueue implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     await this.boss.work(
       queue,
-      { pollingIntervalSeconds: options.pollingIntervalSeconds },
+      {
+        pollingIntervalSeconds: options.pollingIntervalSeconds,
+        ...(options.batchSize !== undefined && { batchSize: options.batchSize }),
+      },
       async (jobs) => {
         for (const job of jobs) await handler(job.data);
       },

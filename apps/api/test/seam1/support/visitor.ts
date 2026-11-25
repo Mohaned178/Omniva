@@ -4,6 +4,7 @@ import { createApiClient, type ApiClient } from '@omniva/api-client';
 export interface RawRequest {
   /** Values for the path's `{name}` placeholders. */
   readonly params?: Readonly<Record<string, string>>;
+  readonly query?: Readonly<Record<string, string>>;
   readonly body?: unknown;
 }
 
@@ -30,17 +31,19 @@ export class Visitor {
 
   /**
    * Calls any API path without the typed client. Path parameters come from `params`, and any
-   * left out get ids that exist nowhere; the JSON body is `body`, or empty where the method
-   * takes one.
+   * left out get ids that exist nowhere; the query string from `query`; the JSON body is
+   * `body`, or empty where the method takes one.
    */
   async raw(method: string, path: string, request: RawRequest = {}): Promise<Response> {
     const filledPath = path.replace(
       /\{([^}]+)\}/g,
       (_placeholder, name: string) => request.params?.[name] ?? randomUUID(),
     );
+    const url = new URL(filledPath, this.apiUrl);
+    url.search = new URLSearchParams(request.query).toString();
     const hasBody = method.toLowerCase() !== 'get';
     return this.send(
-      new Request(new URL(filledPath, this.apiUrl), {
+      new Request(url, {
         method: method.toUpperCase(),
         headers: { 'Content-Type': 'application/json' },
         ...(hasBody && { body: JSON.stringify(request.body ?? {}) }),

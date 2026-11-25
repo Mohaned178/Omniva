@@ -2,11 +2,12 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
-import { SIGN_IN_PATH } from '@/lib/routes';
+import { modulePath, SIGN_IN_PATH } from '@/lib/routes';
 import { CURRENT_SESSION_QUERY_KEY, useCurrentSession } from './use-current-session';
 
 /**
@@ -16,6 +17,7 @@ import { CURRENT_SESSION_QUERY_KEY, useCurrentSession } from './use-current-sess
 export function AppShell({ children }: { readonly children: ReactNode }) {
   const t = useTranslations('appShell');
   const app = useTranslations('app');
+  const modules = useTranslations('modules');
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session, isError, isFetching } = useCurrentSession();
@@ -53,6 +55,15 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
       <header className="border-b">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <span className="text-lg font-semibold">{app('name')}</span>
+          <nav aria-label={t('nav.label')} className="flex-1">
+            <ul className="flex flex-wrap gap-4 text-sm">
+              <li>
+                <Link href={modulePath('assets')} className="underline-offset-4 hover:underline">
+                  {modules('assets')}
+                </Link>
+              </li>
+            </ul>
+          </nav>
           <div className="flex items-center gap-3 text-sm">
             <span className="text-muted-foreground">
               {t('signedInAs', { email: session.user.email })}

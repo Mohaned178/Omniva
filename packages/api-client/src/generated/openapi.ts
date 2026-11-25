@@ -106,6 +106,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspaceId}/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The records whose home is a module, in use or archived */
+        get: operations["listRecords"];
+        put?: never;
+        /** Create a record of a Type, in the Type’s home module */
+        post: operations["createRecord"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspaceId}/records/{recordId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One record with its anatomy and fields */
+        get: operations["getRecord"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a record’s title or fields; given fields replace the old ones */
+        patch: operations["updateRecord"];
+        trace?: never;
+    };
+    "/v1/workspaces/{workspaceId}/records/{recordId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A record’s own changes on the Activity Timeline, oldest first */
+        get: operations["getRecordHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspaceId}/records/{recordId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Put a record away, keeping its fields, links and history */
+        post: operations["archiveRecord"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspaceId}/records/{recordId}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bring an archived record back into use */
+        post: operations["unarchiveRecord"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspaceId}/types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Types records can be created from */
+        get: operations["listTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspaceId}": {
         parameters: {
             query?: never;
@@ -143,6 +247,16 @@ export interface components {
                 worker: "up" | "down";
             };
         };
+        ActivityEntry: {
+            /** @enum {string} */
+            action: "created" | "updated" | "archived" | "unarchived";
+            actorUserId: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        RecordHistory: {
+            entries: components["schemas"]["ActivityEntry"][];
+        };
         ApiError: {
             code: string;
             message: string;
@@ -172,6 +286,64 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+        };
+        RecordFields: {
+            [key: string]: string | number;
+        };
+        TypeKey: string;
+        CreateRecordRequest: {
+            typeKey: components["schemas"]["TypeKey"];
+            title: string;
+            fields: components["schemas"]["RecordFields"];
+        };
+        /** @enum {string} */
+        LifeModule: "productivity" | "finance" | "health" | "knowledge" | "career" | "assets" | "social" | "travel" | "home" | "subscriptions" | "documents" | "entertainment";
+        /** Format: uuid */
+        RecordId: string;
+        /** @enum {string} */
+        LifecycleState: "owned" | "disposed" | "active" | "ending" | "ended" | "valid" | "expired" | "open" | "done" | "upcoming" | "in_progress" | "past";
+        Record: {
+            id: components["schemas"]["RecordId"];
+            typeKey: components["schemas"]["TypeKey"];
+            title: string;
+            homeModule: components["schemas"]["LifeModule"];
+            lifecycleState: components["schemas"]["LifecycleState"] | null;
+            isArchived: boolean;
+            fields: components["schemas"]["RecordFields"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        RecordList: {
+            records: components["schemas"]["Record"][];
+        };
+        /** @enum {string} */
+        Block: "item" | "document" | "money_record" | "obligation" | "event" | "task" | "person" | "note" | "plan" | "measurement";
+        FieldKey: string;
+        FieldDefinition: {
+            key: components["schemas"]["FieldKey"];
+            /** @enum {string} */
+            kind: "text" | "number" | "date";
+        };
+        ReminderRule: {
+            keyDateField: components["schemas"]["FieldKey"];
+            daysBefore: number;
+        };
+        TypeDefinition: {
+            key: components["schemas"]["TypeKey"];
+            block: components["schemas"]["Block"];
+            homeModule: components["schemas"]["LifeModule"];
+            fields: components["schemas"]["FieldDefinition"][];
+            keyDateFields: components["schemas"]["FieldKey"][];
+            defaultReminderRules: components["schemas"]["ReminderRule"][];
+        };
+        TypeList: {
+            types: components["schemas"]["TypeDefinition"][];
+        };
+        UpdateRecordRequest: {
+            title?: string;
+            fields?: components["schemas"]["RecordFields"];
         };
         /** Format: uuid */
         WorkspaceId: string;
@@ -365,6 +537,353 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthReport"];
+                };
+            };
+        };
+    };
+    listRecords: {
+        parameters: {
+            query: {
+                archived?: boolean;
+                module: components["schemas"]["LifeModule"];
+            };
+            header?: never;
+            path: {
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The records */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordList"];
+                };
+            };
+            /** @description Invalid input, such as a field the Type does not have */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The workspace does not exist, or the user is not a member of it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    createRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description The record */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Record"];
+                };
+            };
+            /** @description Invalid input, such as a field the Type does not have */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The user’s role in the workspace does not allow this */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The workspace does not exist, or the user is not a member of it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: components["schemas"]["RecordId"];
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Record"];
+                };
+            };
+            /**
+             * @description No such record in the workspace
+             *
+             *     The workspace does not exist, or the user is not a member of it
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    updateRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: components["schemas"]["RecordId"];
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description The record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Record"];
+                };
+            };
+            /** @description Invalid input, such as a field the Type does not have */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The user’s role in the workspace does not allow this */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /**
+             * @description No such record in the workspace
+             *
+             *     The workspace does not exist, or the user is not a member of it
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getRecordHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: components["schemas"]["RecordId"];
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The record’s history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordHistory"];
+                };
+            };
+            /**
+             * @description No such record in the workspace
+             *
+             *     The workspace does not exist, or the user is not a member of it
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    archiveRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: components["schemas"]["RecordId"];
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Record"];
+                };
+            };
+            /** @description The user’s role in the workspace does not allow this */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /**
+             * @description No such record in the workspace
+             *
+             *     The workspace does not exist, or the user is not a member of it
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    unarchiveRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: components["schemas"]["RecordId"];
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Record"];
+                };
+            };
+            /** @description The user’s role in the workspace does not allow this */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /**
+             * @description No such record in the workspace
+             *
+             *     The workspace does not exist, or the user is not a member of it
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The Types */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TypeList"];
+                };
+            };
+            /** @description The workspace does not exist, or the user is not a member of it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };
