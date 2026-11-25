@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Dependency install scripts run only when allowed here. scarf is swagger-ui's telemetry: never.
+allowBuilds:
+  '@parcel/watcher': false
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  '@swc/core': true
+  prisma: true

@@ -1,0 +1,13 @@
+// Omniva database schema. Migrations are forward-only and expand–contract
+// (CODING_STANDARDS §6); row-level security policies live in hand-written SQL inside the
+// migration that adds each workspace-owned table (ADR 0009, ADR 0016).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}

@@ -1,0 +1,13 @@
+pnpm-lock.yaml
+graphify-out/
+**/dist/
+**/.next/
+**/generated/
+apps/api/openapi.json
+*.html
+omniva-project-handoff.md
+# Approved documents and agent tooling keep their own formatting.
+*.md
+docs/
+.claude/
+.codex/

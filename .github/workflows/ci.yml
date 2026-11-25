@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  ci:
+    # Branch protection on main requires this check by name.
+    name: Lint, types and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Same images and host ports as docker-compose.yml, so the tests' defaults work here too.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: omniva
+          POSTGRES_PASSWORD: omniva
+          POSTGRES_DB: omniva
+        ports: ['55432:5432']
+        options: >-
+          --health-cmd "pg_isready -U omniva -d omniva"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+      redis:
+        image: valkey/valkey:8-alpine
+        ports: ['56379:6379']
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ['51025:1025', '58025:8025']
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The forward-only migration check compares against main.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:packages
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - name: Generated OpenAPI document and API client are up to date
+        run: pnpm check:generated
+      - name: Migrations are forward-only
+        run: pnpm check:migrations
+      - name: Seam 2, domain rules
+        run: pnpm test:seam2
+      - name: Seam 1, API and worker on real infrastructure
+        run: pnpm test:seam1
+      - name: Web app builds
+        run: pnpm --filter @omniva/web build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
