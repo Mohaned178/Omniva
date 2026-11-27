@@ -3,6 +3,7 @@ import { LifeModuleSchema } from './life-module.js';
 import { LifecycleStateSchema } from './lifecycle-state.js';
 import { RecordFieldsSchema } from './record-fields.js';
 import { RecordIdSchema } from './record-id.js';
+import { ReminderRuleSchema } from './type-definition.js';
 import { TypeKeySchema } from './type-key.js';
 
 /** A record with its anatomy (spec, Domain model). */
@@ -17,6 +18,8 @@ export const RecordSchema = z
     lifecycleState: LifecycleStateSchema.nullable(),
     isArchived: z.boolean(),
     fields: RecordFieldsSchema,
+    /** When reminders come for the record's Key dates; a new record starts with its Type's. */
+    reminderRules: z.array(ReminderRuleSchema),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })

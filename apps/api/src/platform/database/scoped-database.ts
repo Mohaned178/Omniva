@@ -1,4 +1,8 @@
-import type { DatabaseTransaction, TransactionScope } from './database-transaction.js';
+import type {
+  DatabaseTransaction,
+  TransactionOptions,
+  TransactionScope,
+} from './database-transaction.js';
 
 /**
  * The workspace-scoped Prisma client (ADR 0009, ADR 0016, CODING_STANDARDS §6): every query
@@ -10,5 +14,6 @@ export abstract class ScopedDatabase {
   abstract $scopedTransaction<T>(
     scope: TransactionScope,
     work: (transaction: DatabaseTransaction) => Promise<T>,
+    options?: TransactionOptions,
   ): Promise<T>;
 }

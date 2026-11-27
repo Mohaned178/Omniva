@@ -220,7 +220,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="approved">
     <div class="tag">Approved · Round 1 · 24 Nov 2026 · Claude's recommendations accepted</div>
     <ul style="margin-top:8px">
-      <li><b>Isolation:</b> one shared database, workspace enforced in two independent layers (application gate and database), mandatory cross-workspace tests (<a href="docs/adr/0009-workspace-isolation-in-two-layers.md">ADR 0009</a>).</li>
+      <li><b>Isolation:</b> one shared database, workspace enforced in two independent layers (application gate and database), mandatory cross-workspace tests (<a href="docs/adr/0009-workspace-isolation-in-two-layers.md">ADR 0009</a>). Omniva's own work across workspaces, such as the minute check for due reminders, runs in a transaction that names its task and may read only the tables whose policies name that task (<a href="docs/adr/0021-omniva-tasks-across-workspaces.md">ADR 0021</a>).</li>
       <li><b>Permission checks from day one:</b> every action checks membership and role, even in the personal-only MVP; module- and item-level access slot in later.</li>
       <li><b>Sign-in:</b> email and password, optional authenticator-app codes and passkeys; no social sign-in in the MVP; a proven authentication library or service, never custom security code.</li>
       <li><b>Recovery:</b> password reset by email link with notification; lost second factor via recovery codes, otherwise an email reset with a 72-hour waiting period, announced everywhere and cancellable.</li>
@@ -368,6 +368,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="areahead"><div class="eyebrow">Records</div><h2>Decision log</h2></div>
   <div class="tablewrap"><table id="t-log">
     <tr><th>Date</th><th>Topic</th><th>Decision</th></tr>
+    <tr><td>27 Nov 2026</td><td>Reminder delivery (ticket 07)</td><td>User chose a narrow named policy for the worker's cross-workspace check of due reminders: a transaction naming the task reads the due-notice table alone and writes nothing; everything else stays scoped to one workspace (ADR 0021, refining ADR 0009).</td></tr>
     <tr><td>24 Nov 2026</td><td>D7 round 4 (Redis)</td><td>User reversed "no separate store": Redis for rate limiting, session secondary store and non-personal cache; jobs stay on pg-boss in PostgreSQL; no record content in Redis, keys expire, disposable (ADR 0020). Provider: Render Key Value, Frankfurt, free instance (ADR 0017 updated).</td></tr>
     <tr><td>24 Nov 2026</td><td>D9 API &amp; clients</td><td>REST + OpenAPI with generated typed client; /v1 additive versioning; Next.js server holds no user data (ADR 0019); cookie sessions with CSRF protection; TanStack Query, React Hook Form, shadcn/ui; Arabic-ready i18n; responsive mobile web; WCAG 2.2 AA. <b>System Design complete.</b></td></tr>
     <tr><td>24 Nov 2026</td><td>D8 Reliability &amp; testing</td><td>Unit, real-database integration and end-to-end tests; build-blocking isolation suite (ADR 0018); clock-controlled reminder tests; GitHub Actions with manual production promote; real data only in production; reminder alerts; expand–contract migrations; honest incident handling; monthly automated restore drill.</td></tr>

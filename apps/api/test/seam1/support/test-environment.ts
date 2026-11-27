@@ -8,6 +8,9 @@ export const MAILPIT_API_URL = process.env.TEST_MAILPIT_API_URL ?? 'http://local
 const TEST_SMTP_URL = process.env.TEST_SMTP_URL ?? 'smtp://localhost:51025';
 export const TEST_WEB_ORIGIN = 'http://localhost:3000';
 
+/** The worker checks for due reminders this often, so a test needn't wait a real minute. */
+const TEST_REMINDER_CHECK_INTERVAL_MS = 200;
+
 // The worker probe keeps its production timeout: a shorter one made "worker up" flaky on a
 // busy machine, and a test that waits out the timeout is rare.
 export function testConfig(overrides: Readonly<Record<string, string>> = {}): AppConfig {
@@ -19,6 +22,7 @@ export function testConfig(overrides: Readonly<Record<string, string>> = {}): Ap
     API_PUBLIC_URL: 'https://api.omniva.test',
     API_PORT: '0',
     SMTP_URL: TEST_SMTP_URL,
+    REMINDER_CHECK_INTERVAL_MS: String(TEST_REMINDER_CHECK_INTERVAL_MS),
     AUTH_SECRET: 'seam1-test-secret-not-used-anywhere-else-0123456789',
     ...overrides,
   });

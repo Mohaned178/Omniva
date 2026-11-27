@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { calendarDateOf, initialLifecycleState } from '@omniva/domain-rules';
 import {
   recordFieldsSchemaFor,
+  reminderRulesSchemaFor,
   type ActivityAction,
   type CreateRecordRequest,
   type RecordFields,
   type RecordView,
+  type ReminderRule,
   type TypeDefinition,
   type UpdateRecordRequest,
 } from '@omniva/schemas';
@@ -45,6 +47,12 @@ export class RecordChanges {
   async create(access: WorkspaceAccess, request: CreateRecordRequest): Promise<RecordView> {
     const type = this.typeCalled(request.typeKey);
     const fields = validFields(type, request.fields);
+    // Omniva sets the Type's default reminders on a new record unless the user chose their own
+    // (spec D23, D47).
+    const reminderRules =
+      request.reminderRules === undefined
+        ? type.defaultReminderRules
+        : validReminderRules(type, request.reminderRules);
     const now = this.clock.now();
     if (request.acknowledgeImplausibleDates !== true) {
       assertPlausibleDates({ type, fields, today: calendarDateOf(now) });
@@ -59,6 +67,7 @@ export class RecordChanges {
           title: request.title,
           lifecycleState: initialLifecycleState(type.block) ?? null,
           fields,
+          reminderRules,
           createdAt: now,
           updatedAt: now,
         },
@@ -69,6 +78,7 @@ export class RecordChanges {
         recordId: record.id,
         type,
         fields,
+        reminderRules,
       });
       await this.noteChange(transaction, access, record, 'created');
       return toRecordView(record);
@@ -76,8 +86,9 @@ export class RecordChanges {
   }
 
   /**
-   * Changes a record's title or fields; new fields replace the old ones as a whole. An edit
-   * that leaves everything as it was is not a change, so nothing is noted.
+   * Changes a record's title, fields or reminder rules; new fields or rules replace the old
+   * ones as a whole. An edit that leaves everything as it was is not a change, so nothing is
+   * noted.
    */
   async update(
     access: WorkspaceAccess,
@@ -90,7 +101,17 @@ export class RecordChanges {
       const title = request.title ?? current.title;
       const fields =
         request.fields === undefined ? current.fields : validFields(type, request.fields);
-      if (title === current.title && isDeepStrictEqual(fields, current.fields)) return current;
+      const reminderRules =
+        request.reminderRules === undefined
+          ? current.reminderRules
+          : validReminderRules(type, request.reminderRules);
+      if (
+        title === current.title &&
+        isDeepStrictEqual(fields, current.fields) &&
+        isDeepStrictEqual(reminderRules, current.reminderRules)
+      ) {
+        return current;
+      }
       const now = this.clock.now();
       if (request.acknowledgeImplausibleDates !== true) {
         assertPlausibleDates({
@@ -102,7 +123,7 @@ export class RecordChanges {
       }
       const record = await transaction.record.update({
         where: { id: recordId },
-        data: { title, fields, updatedAt: now },
+        data: { title, fields, reminderRules, updatedAt: now },
         select: STORED_RECORD_SELECT,
       });
       await this.keyDates.keepInStepWith(transaction, {
@@ -110,6 +131,7 @@ export class RecordChanges {
         recordId,
         type,
         fields,
+        reminderRules,
       });
       await this.noteChange(transaction, access, record, 'updated');
       return toRecordView(record);
@@ -174,4 +196,22 @@ export class RecordChanges {
 /** The fields, validated against the record's Type definition (ADR 0011). */
 function validFields(type: TypeDefinition, fields: RecordFields): RecordFields {
   return parseInput(recordFieldsSchemaFor(type), fields);
+}
+
+/**
+ * The record's own reminder rules, validated against its Type, with a rule given twice kept
+ * once, in the order given.
+ */
+function validReminderRules(
+  type: TypeDefinition,
+  rules: readonly ReminderRule[],
+): readonly ReminderRule[] {
+  const valid = parseInput(reminderRulesSchemaFor(type), rules);
+  return valid.filter(
+    (rule, index) =>
+      valid.findIndex(
+        ({ keyDateField, daysBefore }) =>
+          keyDateField === rule.keyDateField && daysBefore === rule.daysBefore,
+      ) === index,
+  );
 }

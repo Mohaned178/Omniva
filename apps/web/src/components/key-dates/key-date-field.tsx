@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ReminderSelect, type ReminderChoice } from './reminder-select';
 import { useKeyDateWords } from './use-key-date-words';
 
 type Precision = 'exact' | 'month' | 'missing';
@@ -19,13 +20,22 @@ interface KeyDateFieldProps {
   readonly onBlur: () => void;
   /** The message for the field's current error, already translated. */
   readonly error?: string | undefined;
+  /** When given, the date's reminder can be chosen with it (spec D23, D47). */
+  readonly reminder?: ReminderChoice | undefined;
 }
 
 /**
  * A Key date as the user knows it (spec D42): an exact day, a month only, or marked missing,
  * with what they entered said back in plain words so a typo is noticed at once (D46).
  */
-export function KeyDateField({ label, value, onChange, onBlur, error }: KeyDateFieldProps) {
+export function KeyDateField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  error,
+  reminder,
+}: KeyDateFieldProps) {
   const t = useTranslations('keyDates.field');
   const words = useKeyDateWords();
   const id = useId();
@@ -86,6 +96,7 @@ export function KeyDateField({ label, value, onChange, onBlur, error }: KeyDateF
           {error}
         </p>
       ) : null}
+      {reminder ? <ReminderSelect labelId={`${id}-label`} reminder={reminder} /> : null}
     </div>
   );
 }

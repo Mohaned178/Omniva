@@ -49,6 +49,12 @@ export {
   type RecordFields,
 } from './records/record-fields.js';
 export { RecordIdSchema } from './records/record-id.js';
+export {
+  RecordReminderRulesSchema,
+  reminderRulesFor,
+  reminderRulesSchemaFor,
+  type RecordReminderRules,
+} from './records/record-reminder-rules.js';
 export { RecordListQuerySchema, type RecordListQuery } from './records/record-list-query.js';
 export { RecordTitleSchema } from './records/record-title.js';
 export {
@@ -58,11 +64,15 @@ export {
   type RecordView,
 } from './records/record.js';
 export {
+  FieldKeySchema,
+  MAX_REMINDER_DAYS_BEFORE,
+  ReminderRuleSchema,
   TypeDefinitionSchema,
   TypeListSchema,
   type DateOrder,
   type FieldDefinition,
   type FieldKind,
+  type ReminderRule,
   type TypeDefinition,
   type TypeList,
 } from './records/type-definition.js';
@@ -70,6 +80,11 @@ export {
   UpdateRecordRequestSchema,
   type UpdateRecordRequest,
 } from './records/update-record-request.js';
+export { ReminderStatusSchema, type ReminderStatus } from './reminders/reminder-status.js';
+export {
+  SetReminderStatusRequestSchema,
+  type SetReminderStatusRequest,
+} from './reminders/set-reminder-status-request.js';
 export { WorkspaceSchema, type Workspace } from './workspaces/workspace.js';
 export { WorkspaceIdSchema } from './workspaces/workspace-id.js';
 export { implausibleDatesIn } from './records/implausible-dates-in.js';

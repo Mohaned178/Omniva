@@ -1,7 +1,13 @@
 'use client';
 
 import { parseDateValue } from '@omniva/domain-rules';
-import type { FieldDefinition, FieldKind, RecordView, TypeDefinition } from '@omniva/schemas';
+import {
+  reminderRulesFor,
+  type FieldDefinition,
+  type FieldKind,
+  type RecordView,
+  type TypeDefinition,
+} from '@omniva/schemas';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId } from 'react';
@@ -128,13 +134,40 @@ function ImportantDates({
             <dd>
               <span>{dateText(value)}</span>
               {parseDateValue(value)?.precision === 'missing' ? null : (
-                <span className="text-muted-foreground"> · {words(value)}</span>
+                <>
+                  <span className="text-muted-foreground"> · {words(value)}</span>
+                  <ReminderSummary record={record} field={key} />
+                </>
               )}
             </dd>
           </div>
         ))}
       </dl>
     </section>
+  );
+}
+
+/** When the date's reminders come, so nothing happens behind the user's back (spec D47). */
+function ReminderSummary({
+  record,
+  field,
+}: {
+  readonly record: RecordView;
+  readonly field: string;
+}) {
+  const t = useTranslations('keyDates.reminder');
+  const format = useFormatter();
+  const lead = reminderRulesFor(record.reminderRules, field)
+    .map(({ daysBefore }) => daysBefore)
+    .sort((a, b) => b - a);
+  return (
+    <span className="text-muted-foreground block text-sm">
+      {lead.length === 0
+        ? t('none')
+        : t('onRecord', {
+            when: format.list(lead.map((days) => t('daysBefore', { count: days }))),
+          })}
+    </span>
   );
 }
 

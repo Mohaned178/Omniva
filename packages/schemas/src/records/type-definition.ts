@@ -22,9 +22,18 @@ export const FieldDefinitionSchema = z
   .meta({ id: 'FieldDefinition' });
 export type FieldDefinition = z.infer<typeof FieldDefinitionSchema>;
 
-/** A reminder a new record of the Type gets by default, some days before one of its Key dates. */
+/** As early as a reminder can come: two years covers any renewal or expiry. */
+export const MAX_REMINDER_DAYS_BEFORE = 730;
+
+/**
+ * When a reminder comes (GLOSSARY.md, Reminder rule): some days before one of a Type's Key
+ * dates. A Type sets the rules its new records start with; each record then has its own.
+ */
 export const ReminderRuleSchema = z
-  .object({ keyDateField: FieldKeySchema, daysBefore: z.int().min(0) })
+  .object({
+    keyDateField: FieldKeySchema,
+    daysBefore: z.int().min(0).max(MAX_REMINDER_DAYS_BEFORE),
+  })
   .meta({ id: 'ReminderRule' });
 export type ReminderRule = z.infer<typeof ReminderRuleSchema>;
 

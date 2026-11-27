@@ -1,5 +1,9 @@
 import type { PrismaClient } from '../../generated/prisma/client.js';
-import type { DatabaseTransaction, TransactionScope } from './database-transaction.js';
+import type {
+  DatabaseTransaction,
+  TransactionOptions,
+  TransactionScope,
+} from './database-transaction.js';
 import { OutsideMembership } from './outside-membership.js';
 import { RowLevelSecurityNotEnforced } from './row-level-security-not-enforced.js';
 
@@ -23,12 +27,16 @@ export function withWorkspaceScoping(client: PrismaClient) {
       $scopedTransaction<T>(
         scope: TransactionScope,
         work: (transaction: DatabaseTransaction) => Promise<T>,
+        options: TransactionOptions = {},
       ): Promise<T> {
-        return client.$transaction(async (transaction) => {
-          await enterScope(transaction, scope);
-          await confirmMembership(transaction, scope);
-          return work(transaction);
-        });
+        return client.$transaction(
+          async (transaction) => {
+            await enterScope(transaction, scope);
+            await confirmMembership(transaction, scope);
+            return work(transaction);
+          },
+          options.timeoutMs === undefined ? {} : { timeout: options.timeoutMs },
+        );
       },
     },
   });
@@ -36,7 +44,8 @@ export function withWorkspaceScoping(client: PrismaClient) {
 
 /**
  * Names the scope and, in the same round trip, fails closed if the connection's role could
- * bypass row-level security: a misconfigured deployment must refuse, never leak.
+ * bypass row-level security: a misconfigured deployment must refuse, never leak. A task across
+ * workspaces names no workspace, so only the policies that name its task let it see rows.
  */
 async function enterScope(
   transaction: DatabaseTransaction,
@@ -45,6 +54,7 @@ async function enterScope(
   const [entered] = await transaction.$queryRaw<EnteredScope[]>`
     SELECT set_config('app.workspace_id', ${scope.workspaceId ?? ''}, true) AS workspace_id,
            set_config('app.user_id', ${scope.userId ?? ''}, true) AS user_id,
+           set_config('app.task', ${scope.task ?? ''}, true) AS task,
            (SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname = current_user)
              AS "canBypassRowLevelSecurity"`;
   if (entered?.canBypassRowLevelSecurity !== false) {

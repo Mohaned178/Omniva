@@ -151,6 +151,33 @@ export const ISOLATION_CASES: Readonly<Record<string, IsolationCase>> = {
     return { params: { workspaceId }, secrets: [title] };
   },
 
+  // Handling the victim's reminder must fail and leave it on their attention list.
+  setReminderStatus: async ({ user, session }) => {
+    const workspaceId = session.personalWorkspace.id;
+    const title = `Victim's reminded car ${randomUUID()}`;
+    const date = '2027-03-20';
+    const { data: vehicle } = await user.api.POST('/v1/workspaces/{workspaceId}/records', {
+      params: { path: { workspaceId } },
+      body: { typeKey: 'vehicle', title, fields: { registrationExpiresOn: date } },
+    });
+    if (!vehicle) throw new Error('The victim’s vehicle was not created');
+    const attention = async () =>
+      (
+        await user.api.GET('/v1/workspaces/{workspaceId}/key-dates/attention', {
+          params: { path: { workspaceId } },
+        })
+      ).data;
+    const attentionBefore = await attention();
+    return {
+      params: { workspaceId, recordId: vehicle.id, fieldKey: 'registrationExpiresOn' },
+      secrets: [title],
+      body: { date, status: 'handled' },
+      expectUnharmed: async () => {
+        expect(await attention()).toEqual(attentionBefore);
+      },
+    };
+  },
+
   getRecord: atVictimsVehicle(),
   getRecordHistory: atVictimsVehicle(),
   updateRecord: atVictimsVehicle({ title: 'Renamed by an intruder' }),

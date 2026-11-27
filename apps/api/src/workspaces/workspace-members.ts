@@ -24,4 +24,19 @@ export class WorkspaceMembers {
     );
     return member?.role;
   }
+
+  /**
+   * The users who are members of the workspace, for Omniva's own work on it, such as sending
+   * its reminders. The transaction is scoped to the workspace, with no user acting.
+   */
+  async userIdsOf(workspaceId: string): Promise<readonly string[]> {
+    const members = await this.database.$scopedTransaction({ workspaceId }, (transaction) =>
+      transaction.member.findMany({
+        where: { workspaceId },
+        orderBy: { createdAt: 'asc' },
+        select: { userId: true },
+      }),
+    );
+    return members.map(({ userId }) => userId);
+  }
 }
