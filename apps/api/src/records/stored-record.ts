@@ -1,4 +1,5 @@
-import { RecordFieldsSchema, type RecordView } from '@omniva/schemas';
+import { RecordFieldsSchema, ReminderRuleSchema, type RecordView } from '@omniva/schemas';
+import { z } from 'zod';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { WorkspaceAccess } from '../identity/workspace-access.js';
 import type { DatabaseTransaction } from '../platform/database/database-transaction.js';
@@ -13,6 +14,7 @@ export const STORED_RECORD_SELECT = {
   lifecycleState: true,
   isArchived: true,
   fields: true,
+  reminderRules: true,
   createdAt: true,
   updatedAt: true,
 } as const satisfies Prisma.RecordSelect;
@@ -36,12 +38,15 @@ export async function storedRecordOf(
   return record;
 }
 
+const ReminderRulesColumnSchema = z.array(ReminderRuleSchema);
+
 /** A stored record as the API shows it. */
 export function toRecordView(record: StoredRecord): RecordView {
   return {
     ...record,
     // Written only after validation against the Type, but JSON comes back untyped (§4).
     fields: RecordFieldsSchema.parse(record.fields),
+    reminderRules: ReminderRulesColumnSchema.parse(record.reminderRules),
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };

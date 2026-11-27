@@ -15,6 +15,11 @@ export const KeyDateAttentionItemSchema = z
     date: z.iso.date(),
     /** Whole days from today; negative once the date has passed. */
     daysUntil: z.int(),
+    /**
+     * How its latest reminder reached the user: by email when urgent, otherwise marked for the
+     * digest. Null until a reminder for this date has come.
+     */
+    remindedVia: z.enum(['email', 'digest']).nullable(),
   })
   .meta({ id: 'KeyDateAttentionItem' });
 export type KeyDateAttentionItem = z.infer<typeof KeyDateAttentionItemSchema>;

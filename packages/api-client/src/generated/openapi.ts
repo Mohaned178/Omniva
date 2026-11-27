@@ -217,9 +217,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The Key dates coming up and the ones marked missing */
+        /** The Key dates coming up or just passed, with their reminders, and the ones marked missing */
         get: operations["getKeyDateAttention"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspaceId}/records/{recordId}/key-dates/{fieldKey}/reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a Key date’s reminder handled, snooze it until a day ahead, or open it again */
+        put: operations["setReminderStatus"];
         post?: never;
         delete?: never;
         options?: never;
@@ -307,17 +324,11 @@ export interface components {
         RecordFields: {
             [key: string]: string | number;
         };
-        TypeKey: string;
-        CreateRecordRequest: {
-            typeKey: components["schemas"]["TypeKey"];
-            title: string;
-            fields: components["schemas"]["RecordFields"];
-            acknowledgeImplausibleDates?: boolean;
-        };
         /** @enum {string} */
         Block: "item" | "document" | "money_record" | "obligation" | "event" | "task" | "person" | "note" | "plan" | "measurement";
         /** @enum {string} */
         LifeModule: "productivity" | "finance" | "health" | "knowledge" | "career" | "assets" | "social" | "travel" | "home" | "subscriptions" | "documents" | "entertainment";
+        TypeKey: string;
         FieldKey: string;
         FieldDefinition: {
             key: components["schemas"]["FieldKey"];
@@ -344,6 +355,17 @@ export interface components {
         TypeList: {
             types: components["schemas"]["TypeDefinition"][];
         };
+        RecordReminderRules: {
+            keyDateField: components["schemas"]["FieldKey"];
+            daysBefore: number;
+        }[];
+        CreateRecordRequest: {
+            typeKey: components["schemas"]["TypeKey"];
+            title: string;
+            fields: components["schemas"]["RecordFields"];
+            reminderRules?: components["schemas"]["RecordReminderRules"];
+            acknowledgeImplausibleDates?: boolean;
+        };
         /** Format: uuid */
         RecordId: string;
         KeyDateAttentionItem: {
@@ -356,6 +378,8 @@ export interface components {
             /** Format: date */
             date: string;
             daysUntil: number;
+            /** @enum {string|null} */
+            remindedVia: "email" | "digest" | null;
         };
         MissingKeyDateItem: {
             recordId: components["schemas"]["RecordId"];
@@ -377,6 +401,7 @@ export interface components {
             lifecycleState: components["schemas"]["LifecycleState"] | null;
             isArchived: boolean;
             fields: components["schemas"]["RecordFields"];
+            reminderRules: components["schemas"]["ReminderRule"][];
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -388,7 +413,45 @@ export interface components {
         UpdateRecordRequest: {
             title?: string;
             fields?: components["schemas"]["RecordFields"];
+            reminderRules?: components["schemas"]["RecordReminderRules"];
             acknowledgeImplausibleDates?: boolean;
+        };
+        ReminderStatus: {
+            recordId: components["schemas"]["RecordId"];
+            fieldKey: components["schemas"]["FieldKey"];
+            /** Format: date */
+            date: string;
+            /** @enum {string} */
+            status: "open" | "handled" | "snoozed";
+            /** Format: date */
+            snoozedUntil: string | null;
+        };
+        SetReminderStatusRequest: {
+            /**
+             * Format: date
+             * @description The Key date’s day, the first of the month for a month-only date
+             */
+            date: string;
+            /** @enum {string} */
+            status: "open";
+        } | {
+            /**
+             * Format: date
+             * @description The Key date’s day, the first of the month for a month-only date
+             */
+            date: string;
+            /** @enum {string} */
+            status: "handled";
+        } | {
+            /**
+             * Format: date
+             * @description The Key date’s day, the first of the month for a month-only date
+             */
+            date: string;
+            /** @enum {string} */
+            status: "snoozed";
+            /** Format: date */
+            until: string;
         };
         /** Format: uuid */
         WorkspaceId: string;
@@ -954,6 +1017,65 @@ export interface operations {
                 };
             };
             /** @description The workspace does not exist, or the user is not a member of it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    setReminderStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: components["schemas"]["RecordId"];
+                fieldKey: components["schemas"]["FieldKey"];
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetReminderStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Where the reminder now stands */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderStatus"];
+                };
+            };
+            /** @description Invalid input, such as a snooze that does not end after today */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description The user’s role in the workspace does not allow this */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /**
+             * @description The record has no such Key date on that day, or there is no such record
+             *
+             *     The workspace does not exist, or the user is not a member of it
+             */
             404: {
                 headers: {
                     [name: string]: unknown;

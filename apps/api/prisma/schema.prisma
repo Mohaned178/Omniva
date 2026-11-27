@@ -113,10 +113,13 @@ model Workspace {
   personalOwnerUserId String?       @unique @map("personal_owner_user_id")
   createdAt           DateTime      @default(now()) @map("created_at")
 
-  members         Member[]
-  records         Record[]
-  activityEntries ActivityEntry[]
-  keyDates        KeyDate[]
+  members            Member[]
+  records            Record[]
+  activityEntries    ActivityEntry[]
+  keyDates           KeyDate[]
+  reminderNotices    ReminderNotice[]
+  reminderDeliveries ReminderDelivery[]
+  reminderHandlings  ReminderHandling[]
 
   @@map("workspace")
 }
@@ -207,13 +210,18 @@ model Record {
   lifecycleState LifecycleState? @map("lifecycle_state")
   isArchived     Boolean         @default(false) @map("is_archived")
   fields         Json            @default("{}")
+  /// The record's reminder rules, which start as its Type's defaults: `[{ keyDateField, daysBefore }]`.
+  reminderRules  Json            @default("[]") @map("reminder_rules")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
 
-  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  member          Member?
-  activityEntries ActivityEntry[]
-  keyDates        KeyDate[]
+  workspace          Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  member             Member?
+  activityEntries    ActivityEntry[]
+  keyDates           KeyDate[]
+  reminderNotices    ReminderNotice[]
+  reminderDeliveries ReminderDelivery[]
+  reminderHandlings  ReminderHandling[]
 
   @@index([workspaceId])
   @@index([workspaceId, homeModule])
@@ -269,14 +277,16 @@ enum KeyDatePrecision {
 /// change; reminders, the calendar and the Overview read only from it (ADR 0008). It is derived
 /// from the records' own fields, so it can always be rebuilt.
 model KeyDate {
-  id          String           @id @default(uuid())
-  workspaceId String           @map("workspace_id")
-  recordId    String           @map("record_id")
+  id                 String           @id @default(uuid())
+  workspaceId        String           @map("workspace_id")
+  recordId           String           @map("record_id")
   /// Which of the record's date fields this is, such as `registrationExpiresOn`.
-  fieldKey    String           @map("field_key")
-  precision   KeyDatePrecision
+  fieldKey           String           @map("field_key")
+  precision          KeyDatePrecision
   /// The exact day, or the first of the month for a month-only date; null when missing.
-  date        DateTime?        @db.Date
+  date               DateTime?        @db.Date
+  /// How many days before the date each of its reminder rules reminds.
+  reminderDaysBefore Int[]            @default([]) @map("reminder_days_before")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   record    Record    @relation(fields: [recordId], references: [id], onDelete: Cascade)
@@ -284,4 +294,75 @@ model KeyDate {
   @@unique([recordId, fieldKey])
   @@index([workspaceId, date])
   @@map("key_date")
+}
+
+// ── Scheduling & Reminders ────────────────────────────────────────────────────────────────
+
+/// What the user did about a Key date's reminder (GLOSSARY.md, Handled, Snoozed).
+enum ReminderHandlingStatus {
+  handled
+  snoozed
+
+  @@map("reminder_handling_status")
+}
+
+/// The derived schedule of due notices (ADR 0012): rebuilt from Key dates, their reminder
+/// rules, the deliveries and the user's handling, so it can be emptied and rebuilt at any time.
+model ReminderNotice {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  recordId    String   @map("record_id")
+  fieldKey    String   @map("field_key")
+  /// The Key date's day when the notice was scheduled; another day is another occurrence.
+  occursOn    DateTime @map("occurs_on") @db.Date
+  daysBefore  Int      @map("days_before")
+  remindOn    DateTime @map("remind_on") @db.Date
+  lapsesOn    DateTime @map("lapses_on") @db.Date
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record    Record    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@unique([recordId, fieldKey, occursOn, daysBefore], map: "reminder_notice_once")
+  @@index([remindOn])
+  @@index([workspaceId, remindOn])
+  @@map("reminder_notice")
+}
+
+/// Every due notice delivered, under its unique key, so no retry delivers it twice (ADR 0012).
+model ReminderDelivery {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  recordId    String   @map("record_id")
+  fieldKey    String   @map("field_key")
+  occursOn    DateTime @map("occurs_on") @db.Date
+  daysBefore  Int      @map("days_before")
+  /// Urgent reminders were emailed; the others wait for the digest.
+  isUrgent    Boolean  @map("is_urgent")
+  deliveredAt DateTime @map("delivered_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record    Record    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@unique([recordId, fieldKey, occursOn, daysBefore], map: "reminder_delivery_once")
+  @@index([workspaceId, recordId])
+  @@map("reminder_delivery")
+}
+
+/// What the user did about a Key date's reminder, for the day the date had then.
+model ReminderHandling {
+  id           String                 @id @default(uuid())
+  workspaceId  String                 @map("workspace_id")
+  recordId     String                 @map("record_id")
+  fieldKey     String                 @map("field_key")
+  occursOn     DateTime               @map("occurs_on") @db.Date
+  status       ReminderHandlingStatus
+  snoozedUntil DateTime?              @map("snoozed_until") @db.Date
+  changedAt    DateTime               @map("changed_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record    Record    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@unique([recordId, fieldKey, occursOn], map: "reminder_handling_once")
+  @@index([workspaceId])
+  @@map("reminder_handling")
 }

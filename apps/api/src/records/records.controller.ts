@@ -1,5 +1,5 @@
 import { Controller, Get, Header, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
   ApiErrorSchema,
   CreateRecordRequestSchema,
@@ -20,6 +20,7 @@ import {
 import { CurrentWorkspace } from '../identity/current-workspace.decorator.js';
 import { RequiresRole } from '../identity/requires-role.decorator.js';
 import type { WorkspaceAccess } from '../identity/workspace-access.js';
+import { ApiSchemaParam } from '../platform/http/api-schema-param.js';
 import { ApiZodResponse } from '../platform/http/api-zod-response.js';
 import { ApiZodBody, ZodBody } from '../platform/http/zod-body.js';
 import { zodComponentRef } from '../platform/http/zod-openapi-components.js';
@@ -44,11 +45,7 @@ const RECORD_NOT_FOUND_RESPONSE = {
 
 /** Documents the record id in the path by its shared schema. */
 function ApiRecordIdParam(): MethodDecorator {
-  return ApiParam({
-    name: RECORD_ID_PARAM,
-    // ApiParam takes no bare $ref; a one-item allOf points at the shared schema all the same.
-    schema: { allOf: [{ $ref: zodComponentRef(RecordIdSchema) }] },
-  });
+  return ApiSchemaParam(RECORD_ID_PARAM, RecordIdSchema);
 }
 
 /** Records in a workspace: creating, finding and changing them. */

@@ -3,9 +3,8 @@ import { HistoryModule } from '../history/history.module.js';
 import { RecordChangeAnnouncer } from './change-notifications/record-change-announcer.js';
 import { PersonRecords } from './person-records.js';
 import { RecordChangeLog } from './record-change-log.js';
-import { KeyDateAttention } from './key-dates/key-date-attention.js';
 import { KeyDateCollection } from './key-dates/key-date-collection.js';
-import { KeyDatesController } from './key-dates/key-dates.controller.js';
+import { KeyDateReader } from './key-dates/key-date-reader.js';
 import { RecordChanges } from './record-changes.js';
 import { RecordLibrary } from './record-library.js';
 import { RecordsController } from './records.controller.js';
@@ -15,10 +14,10 @@ import { TypesController } from './types.controller.js';
 /** Records core: every record and its anatomy (ADR 0006, ADR 0011). */
 @Module({
   imports: [HistoryModule],
-  controllers: [RecordsController, TypesController, KeyDatesController],
+  controllers: [RecordsController, TypesController],
   providers: [
-    KeyDateAttention,
     KeyDateCollection,
+    KeyDateReader,
     PersonRecords,
     RecordChangeAnnouncer,
     RecordChangeLog,
@@ -26,6 +25,6 @@ import { TypesController } from './types.controller.js';
     RecordLibrary,
     TypeCatalog,
   ],
-  exports: [PersonRecords, TypeCatalog],
+  exports: [KeyDateReader, PersonRecords, TypeCatalog],
 })
 export class RecordsModule {}

@@ -773,11 +773,111 @@
             }
           }
         },
-        "summary": "The Key dates coming up and the ones marked missing",
+        "summary": "The Key dates coming up or just passed, with their reminders, and the ones marked missing",
         "tags": [
           "key-dates"
         ],
         "x-omniva-minimum-role": "viewer"
+      }
+    },
+    "/v1/workspaces/{workspaceId}/records/{recordId}/key-dates/{fieldKey}/reminder": {
+      "put": {
+        "operationId": "setReminderStatus",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RecordId"
+                }
+              ]
+            }
+          },
+          {
+            "name": "fieldKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/FieldKey"
+                }
+              ]
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetReminderStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Where the reminder now stands",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, such as a snooze that does not end after today",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user’s role in the workspace does not allow this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The record has no such Key date on that day, or there is no such record\n\nThe workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Mark a Key date’s reminder handled, snooze it until a day ahead, or open it again",
+        "tags": [
+          "key-dates"
+        ],
+        "x-omniva-minimum-role": "editor"
       }
     },
     "/v1/workspaces/{workspaceId}": {
@@ -1090,36 +1190,6 @@
           ]
         }
       },
-      "TypeKey": {
-        "type": "string",
-        "maxLength": 64,
-        "pattern": "^[a-z][a-z0-9_]*$"
-      },
-      "CreateRecordRequest": {
-        "type": "object",
-        "properties": {
-          "typeKey": {
-            "$ref": "#/components/schemas/TypeKey"
-          },
-          "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200
-          },
-          "fields": {
-            "$ref": "#/components/schemas/RecordFields"
-          },
-          "acknowledgeImplausibleDates": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "typeKey",
-          "title",
-          "fields"
-        ],
-        "additionalProperties": false
-      },
       "Block": {
         "type": "string",
         "enum": [
@@ -1151,6 +1221,11 @@
           "documents",
           "entertainment"
         ]
+      },
+      "TypeKey": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "FieldKey": {
         "type": "string",
@@ -1275,6 +1350,60 @@
         ],
         "additionalProperties": false
       },
+      "RecordReminderRules": {
+        "maxItems": 20,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "keyDateField": {
+              "$ref": "#/components/schemas/FieldKey"
+            },
+            "daysBefore": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 730
+            }
+          },
+          "required": [
+            "keyDateField",
+            "daysBefore"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "CreateRecordRequest": {
+        "type": "object",
+        "properties": {
+          "typeKey": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "fields": {
+            "$ref": "#/components/schemas/RecordFields"
+          },
+          "reminderRules": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecordReminderRules"
+              }
+            ]
+          },
+          "acknowledgeImplausibleDates": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "typeKey",
+          "title",
+          "fields"
+        ],
+        "additionalProperties": false
+      },
       "RecordId": {
         "type": "string",
         "format": "uuid",
@@ -1311,6 +1440,14 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "remindedVia": {
+            "nullable": true,
+            "type": "string",
+            "enum": [
+              "email",
+              "digest"
+            ]
           }
         },
         "required": [
@@ -1320,7 +1457,8 @@
           "fieldKey",
           "precision",
           "date",
-          "daysUntil"
+          "daysUntil",
+          "remindedVia"
         ],
         "additionalProperties": false
       },
@@ -1416,6 +1554,12 @@
           "fields": {
             "$ref": "#/components/schemas/RecordFields"
           },
+          "reminderRules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReminderRule"
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -1435,6 +1579,7 @@
           "lifecycleState",
           "isArchived",
           "fields",
+          "reminderRules",
           "createdAt",
           "updatedAt"
         ],
@@ -1470,11 +1615,132 @@
               }
             ]
           },
+          "reminderRules": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecordReminderRules"
+              }
+            ]
+          },
           "acknowledgeImplausibleDates": {
             "type": "boolean"
           }
         },
         "additionalProperties": false
+      },
+      "ReminderStatus": {
+        "type": "object",
+        "properties": {
+          "recordId": {
+            "$ref": "#/components/schemas/RecordId"
+          },
+          "fieldKey": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "handled",
+              "snoozed"
+            ]
+          },
+          "snoozedUntil": {
+            "nullable": true,
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          }
+        },
+        "required": [
+          "recordId",
+          "fieldKey",
+          "date",
+          "status",
+          "snoozedUntil"
+        ],
+        "additionalProperties": false
+      },
+      "SetReminderStatusRequest": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "The Key date’s day, the first of the month for a month-only date"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open"
+                ]
+              }
+            },
+            "required": [
+              "date",
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "The Key date’s day, the first of the month for a month-only date"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "handled"
+                ]
+              }
+            },
+            "required": [
+              "date",
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "The Key date’s day, the first of the month for a month-only date"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "snoozed"
+                ]
+              },
+              "until": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              }
+            },
+            "required": [
+              "date",
+              "status",
+              "until"
+            ],
+            "additionalProperties": false
+          }
+        ]
       },
       "WorkspaceId": {
         "type": "string",

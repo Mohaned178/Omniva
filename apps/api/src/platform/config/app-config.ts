@@ -4,6 +4,8 @@ const DEFAULT_API_PORT = 4000;
 /** How long the API waits for the worker to finish a probe job before reporting it down. */
 const DEFAULT_WORKER_PROBE_TIMEOUT_MS = 3000;
 const DEFAULT_MAIL_FROM = 'Omniva <no-reply@omniva.local>';
+/** The worker checks for due reminders every minute (ADR 0012). */
+const DEFAULT_REMINDER_CHECK_INTERVAL_MS = 60_000;
 /** Better Auth signs tokens with this secret; shorter secrets are too easy to guess. */
 const MIN_AUTH_SECRET_LENGTH = 32;
 
@@ -20,6 +22,12 @@ const EnvironmentSchema = z
       .int()
       .positive()
       .default(DEFAULT_WORKER_PROBE_TIMEOUT_MS),
+    /** How often the worker checks for due reminders; tests shorten it. */
+    REMINDER_CHECK_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(DEFAULT_REMINDER_CHECK_INTERVAL_MS),
     SMTP_URL: z.url(),
     MAIL_FROM: z.string().min(1).default(DEFAULT_MAIL_FROM),
     AUTH_SECRET: z.string().min(MIN_AUTH_SECRET_LENGTH),
@@ -45,6 +53,7 @@ export abstract class AppConfig {
   abstract readonly apiPublicUrl: string;
   abstract readonly apiPort: number;
   abstract readonly workerProbeTimeoutMs: number;
+  abstract readonly reminderCheckIntervalMs: number;
   abstract readonly smtpUrl: string;
   abstract readonly mailFrom: string;
   abstract readonly authSecret: string;
@@ -62,6 +71,7 @@ export function loadAppConfig(
     apiPublicUrl: parsed.API_PUBLIC_URL,
     apiPort: parsed.API_PORT,
     workerProbeTimeoutMs: parsed.WORKER_PROBE_TIMEOUT_MS,
+    reminderCheckIntervalMs: parsed.REMINDER_CHECK_INTERVAL_MS,
     smtpUrl: parsed.SMTP_URL,
     mailFrom: parsed.MAIL_FROM,
     authSecret: parsed.AUTH_SECRET,

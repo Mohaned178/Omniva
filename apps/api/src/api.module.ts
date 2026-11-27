@@ -5,6 +5,7 @@ import { LifeModulesModule } from './life-modules/life-modules.module.js';
 import type { AppConfig } from './platform/config/app-config.js';
 import { PlatformModule } from './platform/platform.module.js';
 import { RecordsModule } from './records/records.module.js';
+import { RemindersModule } from './reminders/reminders.module.js';
 
 /** The HTTP API process. */
 @Module({})
@@ -17,6 +18,7 @@ export class ApiModule {
         IdentityModule,
         HealthModule,
         RecordsModule,
+        RemindersModule,
         LifeModulesModule,
       ],
     };
