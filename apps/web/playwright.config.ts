@@ -22,7 +22,9 @@ export default defineConfig({
     {
       command: 'pnpm --filter @omniva/api serve',
       url: `${API_URL}/v1/health`,
-      env: { API_PORT, API_PUBLIC_URL: API_URL, WEB_ORIGIN },
+      // The worker checks for due reminders every second rather than every minute, so a
+      // journey sees its reminder without waiting.
+      env: { API_PORT, API_PUBLIC_URL: API_URL, WEB_ORIGIN, REMINDER_CHECK_INTERVAL_MS: '1000' },
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
     },

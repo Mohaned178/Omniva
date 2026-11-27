@@ -11,6 +11,15 @@ type Precision = 'exact' | 'month' | 'missing';
 
 const MONTH_TEXT_LENGTH = 7;
 
+/** The lead times offered for a reminder, in days: from the day itself to about six months. */
+const REMINDER_DAYS_BEFORE = [0, 1, 3, 7, 14, 30, 60, 90, 180] as const;
+
+/** The date's reminder: days before it as text, or empty for none. */
+interface ReminderChoice {
+  readonly daysBefore: string;
+  readonly onChange: (daysBefore: string) => void;
+}
+
 interface KeyDateFieldProps {
   readonly label: string;
   /** The record's text for the date: `2027-03-15`, `2027-03`, `missing`, or empty. */
@@ -19,13 +28,22 @@ interface KeyDateFieldProps {
   readonly onBlur: () => void;
   /** The message for the field's current error, already translated. */
   readonly error?: string | undefined;
+  /** When given, the date's reminder can be chosen with it (spec D23, D47). */
+  readonly reminder?: ReminderChoice | undefined;
 }
 
 /**
  * A Key date as the user knows it (spec D42): an exact day, a month only, or marked missing,
  * with what they entered said back in plain words so a typo is noticed at once (D46).
  */
-export function KeyDateField({ label, value, onChange, onBlur, error }: KeyDateFieldProps) {
+export function KeyDateField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  error,
+  reminder,
+}: KeyDateFieldProps) {
   const t = useTranslations('keyDates.field');
   const words = useKeyDateWords();
   const id = useId();
@@ -86,6 +104,48 @@ export function KeyDateField({ label, value, onChange, onBlur, error }: KeyDateF
           {error}
         </p>
       ) : null}
+      {reminder ? <ReminderSelect labelId={`${id}-label`} reminder={reminder} /> : null}
+    </div>
+  );
+}
+
+/** How long before the date its reminder comes, or no reminder at all. */
+function ReminderSelect({
+  labelId,
+  reminder,
+}: {
+  readonly labelId: string;
+  readonly reminder: ReminderChoice;
+}) {
+  const t = useTranslations('keyDates.reminder');
+  const selectId = useId();
+  const current = reminder.daysBefore === '' ? undefined : Number(reminder.daysBefore);
+  // A lead time set elsewhere, such as through the API, stays visible and selected.
+  const offered = [
+    ...new Set([...REMINDER_DAYS_BEFORE, ...(current === undefined ? [] : [current])]),
+  ].sort((a, b) => a - b);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 pt-1">
+      <label htmlFor={selectId} className="text-sm">
+        {t('label')}
+      </label>
+      <select
+        id={selectId}
+        aria-describedby={labelId}
+        value={reminder.daysBefore}
+        onChange={(event) => {
+          reminder.onChange(event.target.value);
+        }}
+        className="bg-background rounded-md border px-3 py-2 text-base"
+      >
+        <option value="">{t('none')}</option>
+        {offered.map((days) => (
+          <option key={days} value={String(days)}>
+            {t('daysBefore', { count: days })}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

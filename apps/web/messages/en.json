@@ -354,6 +354,12 @@
       "advice": "Check the dates above. If they are right, you can save them as they are.",
       "saveAsGiven": "Save as given"
     },
+    "reminder": {
+      "label": "Remind me",
+      "none": "No reminder",
+      "daysBefore": "{count, plural, =0 {On the day} one {# day before} other {# days before}}",
+      "onRecord": "Reminder: {when}"
+    },
     "page": {
       "heading": "Important dates"
     },
@@ -363,7 +369,12 @@
       "upcoming": "Coming up",
       "missing": "Dates to find",
       "missingItem": "{field} is missing.",
-      "fill": "Add it"
+      "fill": "Add it",
+      "remindedByEmail": "Reminder sent by email",
+      "reminded": "Reminder",
+      "handled": "Handled",
+      "snooze": "Snooze for a week",
+      "actionFailed": "That didn’t work. Try again in a moment."
     }
   },
   "types": {

@@ -128,13 +128,41 @@ function ImportantDates({
             <dd>
               <span>{dateText(value)}</span>
               {parseDateValue(value)?.precision === 'missing' ? null : (
-                <span className="text-muted-foreground"> · {words(value)}</span>
+                <>
+                  <span className="text-muted-foreground"> · {words(value)}</span>
+                  <ReminderSummary record={record} field={key} />
+                </>
               )}
             </dd>
           </div>
         ))}
       </dl>
     </section>
+  );
+}
+
+/** When the date's reminders come, so nothing happens behind the user's back (spec D47). */
+function ReminderSummary({
+  record,
+  field,
+}: {
+  readonly record: RecordView;
+  readonly field: string;
+}) {
+  const t = useTranslations('keyDates.reminder');
+  const format = useFormatter();
+  const lead = record.reminderRules
+    .filter(({ keyDateField }) => keyDateField === field)
+    .map(({ daysBefore }) => daysBefore)
+    .sort((a, b) => b - a);
+  return (
+    <span className="text-muted-foreground block text-sm">
+      {lead.length === 0
+        ? t('none')
+        : t('onRecord', {
+            when: format.list(lead.map((days) => t('daysBefore', { count: days }))),
+          })}
+    </span>
   );
 }
 

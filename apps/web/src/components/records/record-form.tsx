@@ -49,8 +49,8 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RecordFormValues, unknown, RecordFormOutput>({
-    resolver: zodResolver(recordFormSchemaFor(type)),
-    defaultValues: recordFormValuesOf(record),
+    resolver: zodResolver(recordFormSchemaFor(type, record)),
+    defaultValues: recordFormValuesOf(type, record),
   });
 
   /** Warns about dates that look like typos, and saves only once the user confirms them. */
@@ -101,12 +101,19 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
                 control={control}
                 name={`fields.${key}`}
                 render={({ field }) => (
-                  <KeyDateField
-                    label={wording.fieldLabel(type.key, key)}
-                    value={typeof field.value === 'string' ? field.value : ''}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    error={errors.fields?.[key] ? t(`errors.${errorMessage}`) : undefined}
+                  <Controller
+                    control={control}
+                    name={`reminders.${key}`}
+                    render={({ field: reminder }) => (
+                      <KeyDateField
+                        label={wording.fieldLabel(type.key, key)}
+                        value={typeof field.value === 'string' ? field.value : ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        error={errors.fields?.[key] ? t(`errors.${errorMessage}`) : undefined}
+                        reminder={{ daysBefore: reminder.value, onChange: reminder.onChange }}
+                      />
+                    )}
                   />
                 )}
               />
@@ -160,7 +167,12 @@ function useSaveRecord(type: TypeDefinition, record: RecordView | undefined) {
     const { data } = record
       ? await api.PATCH('/v1/workspaces/{workspaceId}/records/{recordId}', {
           params: { path: { workspaceId, recordId: record.id } },
-          body: { title: values.title, fields: values.fields, acknowledgeImplausibleDates },
+          body: {
+            title: values.title,
+            fields: values.fields,
+            reminderRules: [...values.reminderRules],
+            acknowledgeImplausibleDates,
+          },
         })
       : await api.POST('/v1/workspaces/{workspaceId}/records', {
           params: { path: { workspaceId } },
@@ -168,6 +180,7 @@ function useSaveRecord(type: TypeDefinition, record: RecordView | undefined) {
             typeKey: type.key,
             title: values.title,
             fields: values.fields,
+            reminderRules: [...values.reminderRules],
             acknowledgeImplausibleDates,
           },
         });
