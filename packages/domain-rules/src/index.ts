@@ -14,10 +14,6 @@ export {
   type DateOrder,
   type ImplausibleDate,
 } from './key-dates/find-implausible-dates.js';
-export {
-  formatDateValue,
-  MISSING_DATE_TEXT,
-  parseDateValue,
-} from './key-dates/parse-date-value.js';
+export { MISSING_DATE_TEXT, parseDateValue } from './key-dates/parse-date-value.js';
 export { isRoleAtLeast } from './membership/is-role-at-least.js';
 export { initialLifecycleState } from './records/initial-lifecycle-state.js';

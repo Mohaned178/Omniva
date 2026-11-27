@@ -1,11 +1,5 @@
-import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { formatDateValue, parseDateValue } from './parse-date-value.js';
-
-const FIRST_DAY = new Date('1900-01-01');
-const LAST_DAY = new Date('2200-12-31');
-const ISO_DAY_LENGTH = 10;
-const ISO_MONTH_LENGTH = 7;
+import { parseDateValue } from './parse-date-value.js';
 
 describe('parseDateValue', () => {
   it('reads an exact day', () => {
@@ -33,20 +27,5 @@ describe('parseDateValue', () => {
   it('knows 29 February only in a leap year', () => {
     expect(parseDateValue('2028-02-29')).toBeDefined();
     expect(parseDateValue('2027-02-29')).toBeUndefined();
-  });
-
-  it('formats back to exactly what it read', () => {
-    const days = fc.date({ min: FIRST_DAY, max: LAST_DAY, noInvalidDate: true });
-    const texts = fc.oneof(
-      fc.constant('missing'),
-      days.map((day) => day.toISOString().slice(0, ISO_DAY_LENGTH)),
-      days.map((day) => day.toISOString().slice(0, ISO_MONTH_LENGTH)),
-    );
-    fc.assert(
-      fc.property(texts, (text) => {
-        const value = parseDateValue(text);
-        expect(value && formatDateValue(value)).toBe(text);
-      }),
-    );
   });
 });

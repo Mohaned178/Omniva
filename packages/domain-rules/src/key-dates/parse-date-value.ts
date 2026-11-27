@@ -30,30 +30,6 @@ export function parseDateValue(text: string): DateValue | undefined {
   return undefined;
 }
 
-/** The text a record's field holds for the date; the inverse of `parseDateValue`. */
-export function formatDateValue(value: DateValue): string {
-  switch (value.precision) {
-    case 'missing':
-      return MISSING_DATE_TEXT;
-    case 'month':
-      return `${yearText(value.year)}-${twoDigits(value.month)}`;
-    case 'exact':
-      return `${yearText(value.date.year)}-${twoDigits(value.date.month)}-${twoDigits(value.date.day)}`;
-    default: {
-      const unknownPrecision: never = value;
-      return String(unknownPrecision);
-    }
-  }
-}
-
 function isMonth(month: number): boolean {
   return month >= 1 && month <= MONTHS_PER_YEAR;
-}
-
-function yearText(year: number): string {
-  return String(year).padStart(4, '0');
-}
-
-function twoDigits(number: number): string {
-  return String(number).padStart(2, '0');
 }
