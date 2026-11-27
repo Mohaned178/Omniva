@@ -33,7 +33,7 @@ export interface ReminderEmailContent {
  * The email for an urgent reminder, in plain words (spec D46). Emails are English only for now,
  * as the verification email is; the web app's translations come to them with Arabic.
  */
-export function reminderEmail(content: ReminderEmailContent): EmailMessage {
+export function reminderEmailMessage(content: ReminderEmailContent): EmailMessage {
   return {
     to: content.to,
     subject: `Reminder: ${content.recordTitle}`,

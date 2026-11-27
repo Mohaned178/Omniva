@@ -142,6 +142,10 @@ _Avoid_: Deadline, due date (one kind of key date)
 A key date known only to the month ("March 2027"). It reminds early enough to be safe and invites confirming the exact day.
 _Avoid_: Approximate date, fuzzy date
 
+**Occurrence**:
+One day a key date falls on. A key date given a new day, or one that recurs, has a new occurrence; reminders are delivered and handled for one occurrence.
+_Avoid_: Instance, event (an Event is a building block)
+
 **Date missing**:
 The state of a key date the user doesn't know yet, surfaced gently until it is filled in.
 _Avoid_: Unknown date, empty date

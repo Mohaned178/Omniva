@@ -5,20 +5,12 @@ import { useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ReminderSelect, type ReminderChoice } from './reminder-select';
 import { useKeyDateWords } from './use-key-date-words';
 
 type Precision = 'exact' | 'month' | 'missing';
 
 const MONTH_TEXT_LENGTH = 7;
-
-/** The lead times offered for a reminder, in days: from the day itself to about six months. */
-const REMINDER_DAYS_BEFORE = [0, 1, 3, 7, 14, 30, 60, 90, 180] as const;
-
-/** The date's reminder: days before it as text, or empty for none. */
-interface ReminderChoice {
-  readonly daysBefore: string;
-  readonly onChange: (daysBefore: string) => void;
-}
 
 interface KeyDateFieldProps {
   readonly label: string;
@@ -105,47 +97,6 @@ export function KeyDateField({
         </p>
       ) : null}
       {reminder ? <ReminderSelect labelId={`${id}-label`} reminder={reminder} /> : null}
-    </div>
-  );
-}
-
-/** How long before the date its reminder comes, or no reminder at all. */
-function ReminderSelect({
-  labelId,
-  reminder,
-}: {
-  readonly labelId: string;
-  readonly reminder: ReminderChoice;
-}) {
-  const t = useTranslations('keyDates.reminder');
-  const selectId = useId();
-  const current = reminder.daysBefore === '' ? undefined : Number(reminder.daysBefore);
-  // A lead time set elsewhere, such as through the API, stays visible and selected.
-  const offered = [
-    ...new Set([...REMINDER_DAYS_BEFORE, ...(current === undefined ? [] : [current])]),
-  ].sort((a, b) => a - b);
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 pt-1">
-      <label htmlFor={selectId} className="text-sm">
-        {t('label')}
-      </label>
-      <select
-        id={selectId}
-        aria-describedby={labelId}
-        value={reminder.daysBefore}
-        onChange={(event) => {
-          reminder.onChange(event.target.value);
-        }}
-        className="bg-background rounded-md border px-3 py-2 text-base"
-      >
-        <option value="">{t('none')}</option>
-        {offered.map((days) => (
-          <option key={days} value={String(days)}>
-            {t('daysBefore', { count: days })}
-          </option>
-        ))}
-      </select>
     </div>
   );
 }

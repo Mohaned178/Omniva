@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { calendarDateOf, dayNumberOf, isoDayOf } from '@omniva/domain-rules';
+import { calendarDateOf, dayNumberOf, dayOfIso, isoDayOf } from '@omniva/domain-rules';
 import type { ReminderStatus, SetReminderStatusRequest } from '@omniva/schemas';
 import type { WorkspaceAccess } from '../identity/workspace-access.js';
 import { Clock } from '../platform/clock/clock.js';
@@ -9,15 +9,8 @@ import { ScopedDatabase } from '../platform/database/scoped-database.js';
 import { KeyDateReader } from '../records/key-dates/key-date-reader.js';
 import { KeyDateNotFound } from './errors/key-date-not-found.js';
 import { SnoozeNotAhead } from './errors/snooze-not-ahead.js';
-import { dayOfIso } from './day-of-iso.js';
+import type { Occurrence } from './occurrence.js';
 import { ReminderSchedule } from './reminder-schedule.js';
-
-/** A Key date of a record on the day it has now: what handling and snoozing apply to. */
-interface Occurrence {
-  readonly recordId: string;
-  readonly fieldKey: string;
-  readonly occursOn: Date;
-}
 
 /**
  * A member handling, snoozing or reopening a Key date's reminder (spec D57). The record's due
@@ -39,37 +32,32 @@ export class ReminderStatuses {
     request: SetReminderStatusRequest,
   ): Promise<ReminderStatus> {
     const now = this.clock.now();
-    if (request.status === 'snoozed') assertAhead(request.until, now);
+    const snoozedUntil = request.status === 'snoozed' ? request.until : null;
+    if (snoozedUntil !== null) assertAhead(snoozedUntil, now);
     return this.database.$scopedTransaction(access, async (transaction) => {
       const occurrence = await this.currentOccurrence(transaction, access.workspaceId, {
         recordId,
         fieldKey,
         date: request.date,
       });
+      const where = { workspaceId: access.workspaceId, ...occurrence };
+      // An open reminder is one the user has done nothing about, which has no row.
       if (request.status === 'open') {
-        await transaction.reminderHandling.deleteMany({
-          where: { workspaceId: access.workspaceId, ...occurrence },
-        });
+        await transaction.reminderHandling.deleteMany({ where });
       } else {
         const handling = {
           status: request.status,
-          snoozedUntil: request.status === 'snoozed' ? dateColumnOf(dayOfIso(request.until)) : null,
+          snoozedUntil: snoozedUntil === null ? null : dateColumnOf(dayOfIso(snoozedUntil)),
           changedAt: now,
         };
         await transaction.reminderHandling.upsert({
           where: { recordId_fieldKey_occursOn: occurrence },
-          create: { workspaceId: access.workspaceId, ...occurrence, ...handling },
+          create: { ...where, ...handling },
           update: handling,
         });
       }
       await this.schedule.rebuild(transaction, access.workspaceId, recordId);
-      return {
-        recordId,
-        fieldKey,
-        date: request.date,
-        status: request.status,
-        snoozedUntil: request.status === 'snoozed' ? request.until : null,
-      };
+      return { recordId, fieldKey, date: request.date, status: request.status, snoozedUntil };
     });
   }
 

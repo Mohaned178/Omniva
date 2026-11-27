@@ -1,8 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { withDatabaseAdmin } from './support/database-admin.js';
 import { OmnivaHarness } from './support/omniva-harness.js';
 import { ScriptedEmailSender } from './support/scripted-email-sender.js';
 import { testConfig } from './support/test-environment.js';
 import { currentSessionOf, signedInUser } from './support/users.js';
+import type { Visitor } from './support/visitor.js';
 
 const HARNESS_START = new Date('2027-03-01T09:00:00.000Z');
 /** The car's registration expires on 10 March; its reminder comes three days before. */
@@ -13,6 +15,7 @@ const DELIVERY_TIMEOUT_MS = 15_000;
 const UNREACHABLE_REDIS_URL = 'redis://127.0.0.1:1';
 
 interface Reminded {
+  readonly visitor: Visitor;
   readonly email: string;
   readonly workspaceId: string;
   readonly recordId: string;
@@ -35,13 +38,37 @@ async function userWithAReminderDue(omniva: OmnivaHarness): Promise<Reminded> {
   });
   if (!data) throw new Error('The car was not created');
   await omniva.recordChangesPassedOn();
-  return { email: session.user.email, workspaceId, recordId: data.id };
+  return { visitor, email: session.user.email, workspaceId, recordId: data.id };
+}
+
+/** How the car's registration reminder shows on the user's attention list. */
+async function remindedVia({ visitor, workspaceId, recordId }: Reminded) {
+  const { data } = await visitor.api.GET('/v1/workspaces/{workspaceId}/key-dates/attention', {
+    params: { path: { workspaceId } },
+  });
+  return data?.upcoming.find((item) => item.recordId === recordId)?.remindedVia;
 }
 
 const isReminder = (subject: string): boolean => subject.startsWith('Reminder:');
 
 async function remindersTo(omniva: OmnivaHarness, { email }: Reminded) {
   return (await omniva.mail.messagesTo(email)).filter(({ subject }) => isReminder(subject));
+}
+
+/**
+ * Ends the database connections of every transaction holding a reminder's email, as the death
+ * of the worker process would. Resolves to how many it ended.
+ */
+async function cutConnectionsSendingEmail(): Promise<number> {
+  return withDatabaseAdmin(async (admin) => {
+    const { rows } = await admin.query<{ pid: number }>(
+      `SELECT pid FROM pg_stat_activity
+       WHERE datname = current_database() AND state = 'idle in transaction'
+         AND query LIKE '%FROM reminder_delivery%FOR UPDATE SKIP LOCKED%'`,
+    );
+    for (const { pid } of rows) await admin.query('SELECT pg_terminate_backend($1)', [pid]);
+    return rows.length;
+  });
 }
 
 /** Checks on several later days, so any second send would have happened. */
@@ -80,19 +107,43 @@ describe('reminder delivery under faults', () => {
     expect(await remindersTo(omniva, user)).toHaveLength(1);
   });
 
-  it('sends exactly one email after the worker is stopped in the middle of sending it', async () => {
+  it('shows a reminder in the app at once while its email keeps failing, and emails it once when the provider recovers', async () => {
+    const user = await userWithAReminderDue(omniva);
+    for (let failure = 0; failure < 3; failure += 1) email.failNextSendTo(user.email);
+
+    omniva.clock.setTo(REMINDER_DAY);
+    await omniva.remindersChecked();
+    const whileFailing = await remindedVia(user);
+    await omniva.remindersChecked();
+    await omniva.remindersChecked();
+    await omniva.remindersChecked();
+    await laterChecks(omniva);
+
+    expect(whileFailing).toBe('app');
+    expect(await remindedVia(user)).toBe('email');
+    expect(email.attemptsTo(user.email).filter(isReminder)).toHaveLength(4);
+    expect(await remindersTo(omniva, user)).toHaveLength(1);
+  });
+
+  it('sends exactly one email after the worker dies in the middle of sending it, before the mail server took it', async () => {
     const user = await userWithAReminderDue(omniva);
     const held = email.holdNextSendTo(user.email);
 
     omniva.clock.setTo(REMINDER_DAY);
     await held.reached;
+    // The process dies: PostgreSQL loses the transaction holding the email, and the send in
+    // flight never reaches the mail server.
+    const cut = await cutConnectionsSendingEmail();
     const stopping = omniva.stopWorker();
     held.fail();
     await stopping;
     const whileStopped = await remindersTo(omniva, user);
+    const inTheApp = await remindedVia(user);
     await omniva.startWorker();
 
+    expect(cut).toBe(1);
     expect(whileStopped).toEqual([]);
+    expect(inTheApp).toBe('app');
     await expect
       .poll(() => remindersTo(omniva, user), { timeout: DELIVERY_TIMEOUT_MS })
       .toHaveLength(1);

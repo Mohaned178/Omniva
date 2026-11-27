@@ -5,15 +5,13 @@ import type { DatabaseTransaction } from '../platform/database/database-transact
 import { ScopedDatabase } from '../platform/database/scoped-database.js';
 import type { RemindableKeyDate } from '../records/key-dates/key-date-reader.js';
 import { KeyDateReader } from '../records/key-dates/key-date-reader.js';
+import type { Occurrence } from './occurrence.js';
 import { handlingOf, type StoredHandling } from './stored-handling.js';
 
-/** One of a record's Key dates on one day, as its deliveries and handling are stored. */
-interface StoredOccurrence {
-  readonly fieldKey: string;
-  readonly occursOn: Date;
-}
+/** An occurrence's delivery or handling, read for one record. */
+type OfRecord<T extends Occurrence> = Omit<T, 'recordId'>;
 
-interface StoredDelivery extends StoredOccurrence {
+interface StoredDelivery extends Occurrence {
   readonly daysBefore: number;
 }
 
@@ -67,12 +65,12 @@ export class ReminderSchedule {
 /** The rows of one Key date's outstanding due notices, for the day it has now. */
 function noticeRowsOf(
   keyDate: RemindableKeyDate,
-  deliveries: readonly StoredDelivery[],
-  handlings: readonly (StoredOccurrence & StoredHandling)[],
+  deliveries: readonly OfRecord<StoredDelivery>[],
+  handlings: readonly OfRecord<Occurrence & StoredHandling>[],
 ) {
   if (keyDate.date === undefined || keyDate.record.isArchived) return [];
   const occursOn = dateColumnOf(keyDate.date.day);
-  const isThisOccurrence = (stored: StoredOccurrence): boolean =>
+  const isThisOccurrence = (stored: OfRecord<Occurrence>): boolean =>
     stored.fieldKey === keyDate.fieldKey && stored.occursOn.getTime() === occursOn.getTime();
 
   return outstandingDueNotices({

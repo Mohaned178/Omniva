@@ -1,7 +1,13 @@
 'use client';
 
 import { parseDateValue } from '@omniva/domain-rules';
-import type { FieldDefinition, FieldKind, RecordView, TypeDefinition } from '@omniva/schemas';
+import {
+  reminderRulesFor,
+  type FieldDefinition,
+  type FieldKind,
+  type RecordView,
+  type TypeDefinition,
+} from '@omniva/schemas';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId } from 'react';
@@ -151,8 +157,7 @@ function ReminderSummary({
 }) {
   const t = useTranslations('keyDates.reminder');
   const format = useFormatter();
-  const lead = record.reminderRules
-    .filter(({ keyDateField }) => keyDateField === field)
+  const lead = reminderRulesFor(record.reminderRules, field)
     .map(({ daysBefore }) => daysBefore)
     .sort((a, b) => b - a);
   return (

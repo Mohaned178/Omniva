@@ -1262,7 +1262,7 @@
           "daysBefore": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 9007199254740991
+            "maximum": 730
           }
         },
         "required": [
@@ -1354,22 +1354,7 @@
         "maxItems": 20,
         "type": "array",
         "items": {
-          "type": "object",
-          "properties": {
-            "keyDateField": {
-              "$ref": "#/components/schemas/FieldKey"
-            },
-            "daysBefore": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 730
-            }
-          },
-          "required": [
-            "keyDateField",
-            "daysBefore"
-          ],
-          "additionalProperties": false
+          "$ref": "#/components/schemas/ReminderRule"
         }
       },
       "CreateRecordRequest": {
@@ -1446,6 +1431,7 @@
             "type": "string",
             "enum": [
               "email",
+              "app",
               "digest"
             ]
           }

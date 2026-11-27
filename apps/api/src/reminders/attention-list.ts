@@ -16,20 +16,19 @@ import { Clock } from '../platform/clock/clock.js';
 import { dateColumnOf } from '../platform/database/date-column.js';
 import { ScopedDatabase } from '../platform/database/scoped-database.js';
 import { KeyDateReader, type RemindableKeyDate } from '../records/key-dates/key-date-reader.js';
+import type { Occurrence } from './occurrence.js';
 import { handlingOf, type StoredHandling } from './stored-handling.js';
 
-/** One of a record's Key dates on one day, as reminder deliveries and handling store it. */
-interface StoredOccurrence {
-  readonly recordId: string;
-  readonly fieldKey: string;
-  readonly occursOn: Date;
+/** What has happened to the workspace's reminders that are not handled. */
+interface ReminderState {
+  /** The latest delivery of each occurrence, which says how it was reminded last. */
+  readonly deliveries: readonly LatestDelivery[];
+  readonly handlings: readonly (Occurrence & StoredHandling)[];
 }
 
-/** What has happened to the workspace's reminders: what was delivered and how it was handled. */
-interface ReminderState {
-  /** The latest first, so the first found for a date is how it was reminded last. */
-  readonly deliveries: readonly (StoredOccurrence & { readonly isUrgent: boolean })[];
-  readonly handlings: readonly (StoredOccurrence & StoredHandling)[];
+interface LatestDelivery extends Occurrence {
+  readonly isUrgent: boolean;
+  readonly emailedAt: Date | null;
 }
 
 interface AttentionDays {
@@ -77,16 +76,22 @@ async function reminderStateOf(
   transaction: DatabaseTransaction,
   workspaceId: string,
 ): Promise<ReminderState> {
-  const occurrence = { recordId: true, fieldKey: true, occursOn: true } as const;
   return {
-    deliveries: await transaction.reminderDelivery.findMany({
-      where: { workspaceId },
-      orderBy: [{ deliveredAt: 'desc' }, { daysBefore: 'asc' }],
-      select: { ...occurrence, isUrgent: true },
-    }),
+    // Handled ones are left out: they are off the list for good, so they need not be read.
+    deliveries: await transaction.$queryRaw<LatestDelivery[]>`
+      SELECT DISTINCT ON (d.record_id, d.field_key, d.occurs_on)
+             d.record_id AS "recordId", d.field_key AS "fieldKey", d.occurs_on AS "occursOn",
+             d.is_urgent AS "isUrgent", d.emailed_at AS "emailedAt"
+      FROM reminder_delivery d
+      WHERE d.workspace_id = ${workspaceId}
+        AND NOT EXISTS (
+          SELECT 1 FROM reminder_handling h
+          WHERE h.record_id = d.record_id AND h.field_key = d.field_key
+            AND h.occurs_on = d.occurs_on AND h.status = 'handled')
+      ORDER BY d.record_id, d.field_key, d.occurs_on, d.delivered_at DESC, d.days_before ASC`,
     handlings: await transaction.reminderHandling.findMany({
       where: { workspaceId },
-      select: { ...occurrence, status: true, snoozedUntil: true },
+      select: { recordId: true, fieldKey: true, occursOn: true, status: true, snoozedUntil: true },
     }),
   };
 }
@@ -120,15 +125,24 @@ function upcomingItemOf(
       precision: keyDate.date.precision,
       date: isoDayOf(keyDate.date.day),
       daysUntil: dayNumberOf(keyDate.date.day) - dayNumberOf(today),
-      remindedVia: latest === undefined ? null : latest.isUrgent ? 'email' : 'digest',
+      remindedVia: latest === undefined ? null : remindedViaOf(latest),
     },
   ];
+}
+
+/** An urgent reminder is emailed, and in the app until its email has gone through. */
+function remindedViaOf({
+  isUrgent,
+  emailedAt,
+}: LatestDelivery): KeyDateAttentionItem['remindedVia'] {
+  if (!isUrgent) return 'digest';
+  return emailedAt === null ? 'app' : 'email';
 }
 
 /** Whether a delivery or handling belongs to this Key date on the day it has now. */
 function sameOccurrenceAs(keyDate: RemindableKeyDate, date: DatedKeyDate) {
   const occursOn = dateColumnOf(date.day).getTime();
-  return (stored: StoredOccurrence): boolean =>
+  return (stored: Occurrence): boolean =>
     stored.recordId === keyDate.recordId &&
     stored.fieldKey === keyDate.fieldKey &&
     stored.occursOn.getTime() === occursOn;

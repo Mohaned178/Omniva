@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { collectKeyDates, type CollectedKeyDate } from '@omniva/domain-rules';
-import type { RecordFields, ReminderRule, TypeDefinition } from '@omniva/schemas';
+import { collectKeyDates } from '@omniva/domain-rules';
+import {
+  reminderRulesFor,
+  type RecordFields,
+  type ReminderRule,
+  type TypeDefinition,
+} from '@omniva/schemas';
 import { dateColumnOf } from '../../platform/database/date-column.js';
 import type { DatabaseTransaction } from '../../platform/database/database-transaction.js';
 
@@ -35,15 +40,10 @@ export class KeyDateCollection {
         fieldKey: keyDate.field,
         precision: keyDate.precision,
         date: keyDate.precision === 'missing' ? null : dateColumnOf(keyDate.day),
-        reminderDaysBefore: daysBeforeOf(reminderRules, keyDate),
+        reminderDaysBefore: reminderRulesFor(reminderRules, keyDate.field).map(
+          ({ daysBefore }) => daysBefore,
+        ),
       })),
     });
   }
-}
-
-/** The lead times of the record's reminder rules for one of its Key dates. */
-function daysBeforeOf(rules: readonly ReminderRule[], keyDate: CollectedKeyDate): number[] {
-  return rules
-    .filter(({ keyDateField }) => keyDateField === keyDate.field)
-    .map(({ daysBefore }) => daysBefore);
 }

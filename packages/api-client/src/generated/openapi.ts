@@ -355,10 +355,7 @@ export interface components {
         TypeList: {
             types: components["schemas"]["TypeDefinition"][];
         };
-        RecordReminderRules: {
-            keyDateField: components["schemas"]["FieldKey"];
-            daysBefore: number;
-        }[];
+        RecordReminderRules: components["schemas"]["ReminderRule"][];
         CreateRecordRequest: {
             typeKey: components["schemas"]["TypeKey"];
             title: string;
@@ -379,7 +376,7 @@ export interface components {
             date: string;
             daysUntil: number;
             /** @enum {string|null} */
-            remindedVia: "email" | "digest" | null;
+            remindedVia: "email" | "app" | "digest" | null;
         };
         MissingKeyDateItem: {
             recordId: components["schemas"]["RecordId"];

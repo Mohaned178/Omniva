@@ -1,5 +1,6 @@
 import {
   recordFieldsSchemaFor,
+  reminderRulesFor,
   reminderRulesSchemaFor,
   RecordTitleSchema,
   type RecordFields,
@@ -35,7 +36,7 @@ export function recordFormSchemaFor(type: TypeDefinition, record?: RecordView) {
     fields: toRecordFields(type, fields),
     reminderRules: type.keyDateFields.flatMap((field): ReminderRule[] => {
       const choice = reminders[field] ?? '';
-      if (record && choice === initial[field]) return rulesFor(record.reminderRules, field);
+      if (record && choice === initial[field]) return reminderRulesFor(record.reminderRules, field);
       return choice === '' ? [] : [{ keyDateField: field, daysBefore: Number(choice) }];
     }),
   })).pipe(
@@ -67,7 +68,7 @@ export function recordFormValuesOf(
   const rules = record?.reminderRules ?? type.defaultReminderRules;
   const reminders = Object.fromEntries(
     type.keyDateFields.map((field) => {
-      const [first] = rulesFor(rules, field);
+      const [first] = reminderRulesFor(rules, field);
       return [field, first === undefined ? '' : String(first.daysBefore)];
     }),
   );
@@ -79,8 +80,4 @@ export function recordFormValuesOf(
     ),
     reminders,
   };
-}
-
-function rulesFor(rules: readonly ReminderRule[], field: string): ReminderRule[] {
-  return rules.filter(({ keyDateField }) => keyDateField === field);
 }

@@ -50,8 +50,8 @@ export {
 } from './records/record-fields.js';
 export { RecordIdSchema } from './records/record-id.js';
 export {
-  MAX_REMINDER_DAYS_BEFORE,
   RecordReminderRulesSchema,
+  reminderRulesFor,
   reminderRulesSchemaFor,
   type RecordReminderRules,
 } from './records/record-reminder-rules.js';
@@ -65,6 +65,7 @@ export {
 } from './records/record.js';
 export {
   FieldKeySchema,
+  MAX_REMINDER_DAYS_BEFORE,
   ReminderRuleSchema,
   TypeDefinitionSchema,
   TypeListSchema,

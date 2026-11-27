@@ -5,6 +5,7 @@ import {
   type OnModuleDestroy,
 } from '@nestjs/common';
 import { AppConfig } from '../platform/config/app-config.js';
+import { errorName } from '../platform/errors/error-name.js';
 import { ReminderDeliveries } from './reminder-deliveries.js';
 
 /**
@@ -58,9 +59,7 @@ export class ReminderDueCheck implements OnApplicationBootstrap, OnModuleDestroy
       await this.deliveries.deliverDue();
     } catch (error) {
       // The next check tries again; nothing is lost, as the schedule still holds it.
-      this.logger.error(
-        `The reminder check failed: ${error instanceof Error ? error.name : 'unknown error'}`,
-      );
+      this.logger.error(`The reminder check failed: ${errorName(error)}`);
     }
   }
 }

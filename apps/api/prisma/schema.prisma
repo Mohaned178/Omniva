@@ -330,15 +330,18 @@ model ReminderNotice {
 
 /// Every due notice delivered, under its unique key, so no retry delivers it twice (ADR 0012).
 model ReminderDelivery {
-  id          String   @id @default(uuid())
-  workspaceId String   @map("workspace_id")
-  recordId    String   @map("record_id")
-  fieldKey    String   @map("field_key")
-  occursOn    DateTime @map("occurs_on") @db.Date
-  daysBefore  Int      @map("days_before")
-  /// Urgent reminders were emailed; the others wait for the digest.
-  isUrgent    Boolean  @map("is_urgent")
-  deliveredAt DateTime @map("delivered_at")
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  recordId    String    @map("record_id")
+  fieldKey    String    @map("field_key")
+  occursOn    DateTime  @map("occurs_on") @db.Date
+  daysBefore  Int       @map("days_before")
+  /// Urgent reminders are emailed; the others wait for the digest.
+  isUrgent    Boolean   @map("is_urgent")
+  /// When it reached the app, which is as soon as it is recorded.
+  deliveredAt DateTime  @map("delivered_at")
+  /// When an urgent reminder's email went through; null until it has.
+  emailedAt   DateTime? @map("emailed_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   record    Record    @relation(fields: [recordId], references: [id], onDelete: Cascade)

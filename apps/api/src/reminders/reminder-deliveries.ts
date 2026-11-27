@@ -12,38 +12,25 @@ import { Clock } from '../platform/clock/clock.js';
 import { dateColumnOf } from '../platform/database/date-column.js';
 import type { DatabaseTransaction } from '../platform/database/database-transaction.js';
 import { ScopedDatabase } from '../platform/database/scoped-database.js';
+import { errorName } from '../platform/errors/error-name.js';
 import { KeyDateReader, type RemindableKeyDate } from '../records/key-dates/key-date-reader.js';
-import { ReminderEmails } from './reminder-emails.js';
+import type { Occurrence } from './occurrence.js';
+import { ReminderEmails, type UrgentReminder } from './reminder-emails.js';
 import { handlingOf } from './stored-handling.js';
 
 /**
- * A delivery holds its notices' row locks while the email goes out, so it may take as long as
- * the mail server's own time limits allow (SmtpEmailSender) and some more.
+ * Sending an email holds its delivery's row lock until the mail server answers, so it may take
+ * as long as the server's own time limits allow (SmtpEmailSender) and some more.
  */
-const DELIVERY_TRANSACTION_TIMEOUT_MS = 60_000;
-
-/** One of a record's Key dates on one day, with notices due. */
-interface DueOccurrence {
-  readonly recordId: string;
-  readonly fieldKey: string;
-  readonly occursOn: Date;
-}
+const EMAIL_TRANSACTION_TIMEOUT_MS = 60_000;
 
 /** A Key date that has a day, as it is reminded of. */
 type RemindableDate = RemindableKeyDate & { readonly date: DatedKeyDate };
 
-/** What one check sends with: the day it runs on, and where the workspace's reminders go. */
+/** What one check works with: the day it runs on, and where the workspace's reminders go. */
 interface Sending {
   readonly today: CalendarDate;
   readonly recipients: readonly string[];
-}
-
-/** An occurrence whose due notices this delivery holds. */
-interface LockedOccurrence {
-  readonly workspaceId: string;
-  readonly occurrence: DueOccurrence;
-  readonly keyDate: RemindableDate;
-  readonly locked: readonly LockedNotice[];
 }
 
 interface LockedNotice {
@@ -53,12 +40,24 @@ interface LockedNotice {
   readonly lapsesOn: Date;
 }
 
+/** An urgent reminder delivered to the app whose email has not gone through yet. */
+interface OwedEmail {
+  readonly deliveryId: string;
+  /** The due notice, kept until the email goes through, so each check tries again. */
+  readonly noticeId: string;
+  readonly reminder: UrgentReminder;
+}
+
 /**
- * Delivers due notices, each exactly once (ADR 0012). A Key date's due notices are taken in a
- * transaction of their own under row locks, checked against the records once more, recorded
- * under the delivery's unique key and only then emailed, all before the transaction commits:
- * a send that fails rolls everything back for the next check, and a second worker passes over
- * notices another holds.
+ * Delivers due notices, each exactly once (ADR 0012), in two steps of their own. First a Key
+ * date's due notices are locked, checked against the records once more and the one due is
+ * recorded under its unique key: from that commit on it is in the app, whatever happens to its
+ * email (spec D52). Then an urgent one's email is sent under its delivery's row lock and marked
+ * sent in the same transaction, so a failed send is tried again at the next check and a second
+ * worker passes over a send another holds. The one moment no design can close is between the
+ * mail server accepting an email and that transaction committing: a crash there sends the email
+ * again at the next check, with the same Message-ID so the mail system can tell. A rare repeat
+ * is preferred to a reminder never sent (reliability before calm).
  */
 @Injectable()
 export class ReminderDeliveries {
@@ -104,8 +103,7 @@ export class ReminderDeliveries {
       try {
         await this.deliverOccurrence(workspaceId, occurrence, { today, recipients });
       } catch (error) {
-        // Left as it was, for the next check. Identifiers only: an email error can quote the
-        // recipient's address (CODING_STANDARDS §7).
+        // Left for the next check to try again; identifiers only in the log.
         this.logger.error(
           `A reminder in workspace ${workspaceId} was not delivered: ${errorName(error)}`,
         );
@@ -115,24 +113,70 @@ export class ReminderDeliveries {
 
   private async deliverOccurrence(
     workspaceId: string,
-    occurrence: DueOccurrence,
-    sending: Sending,
+    occurrence: Occurrence,
+    { today, recipients }: Sending,
   ): Promise<void> {
-    await this.database.$scopedTransaction(
-      { workspaceId },
-      async (tx) => {
-        const locked = await lockDueNotices(tx, workspaceId, occurrence, sending.today);
-        if (locked.length === 0) return;
-        const keyDate = await this.stillToRemind(tx, workspaceId, occurrence);
-        if (keyDate === undefined) {
-          // The record moved on, or the user handled it, since it was scheduled.
-          await deleteNotices(tx, locked);
-          return;
-        }
-        await this.deliverDueNotice(tx, { workspaceId, occurrence, keyDate, locked }, sending);
-      },
-      { timeoutMs: DELIVERY_TRANSACTION_TIMEOUT_MS },
+    const owed = await this.database.$scopedTransaction({ workspaceId }, (tx) =>
+      this.deliverToApp(tx, workspaceId, occurrence, today),
     );
+    if (owed !== undefined && recipients.length > 0) {
+      await this.sendOwedEmail(workspaceId, owed, recipients);
+    }
+  }
+
+  /**
+   * Delivers the occurrence's due notice closest to its date to the app and drops the notices
+   * it overtakes, and those the records no longer give. Resolves to the email still owed, if
+   * the reminder is urgent and its email has not gone through.
+   */
+  private async deliverToApp(
+    tx: DatabaseTransaction,
+    workspaceId: string,
+    occurrence: Occurrence,
+    today: CalendarDate,
+  ): Promise<OwedEmail | undefined> {
+    const locked = await lockDueNotices(tx, workspaceId, occurrence, today);
+    if (locked.length === 0) return undefined;
+    const keyDate = await this.stillToRemind(tx, workspaceId, occurrence);
+    const current = locked.filter(
+      ({ daysBefore }) => keyDate?.reminderDaysBefore.includes(daysBefore) === true,
+    );
+    // The record moved on, the user handled it or changed its rules since it was scheduled;
+    // its own rebuild schedules what it gives now.
+    await deleteNotices(
+      tx,
+      locked.filter((notice) => !current.includes(notice)),
+    );
+    if (keyDate === undefined) return undefined;
+
+    const ids = new Map(current.map((row) => [toDueNotice(row), row.id] as const));
+    const delivery = noticeToDeliver({ keyDate: keyDate.date, notices: [...ids.keys()], today });
+    if (delivery === undefined) return undefined;
+    const recorded = await this.recordDelivery(tx, workspaceId, occurrence, delivery);
+    const owesEmail = recorded.isUrgent && recorded.emailedAt === null;
+    const idsOf = (notices: readonly DueNotice[]) =>
+      notices.flatMap((notice) => {
+        const id = ids.get(notice);
+        return id === undefined ? [] : [{ id }];
+      });
+    // An email still owed keeps its notice, so the next check tries it again.
+    await deleteNotices(
+      tx,
+      idsOf(owesEmail ? delivery.overtaken : [delivery.notice, ...delivery.overtaken]),
+    );
+    const [owedNotice] = idsOf([delivery.notice]);
+    if (!owesEmail || owedNotice === undefined) return undefined;
+    return {
+      deliveryId: recorded.id,
+      noticeId: owedNotice.id,
+      reminder: {
+        ...occurrence,
+        daysBefore: delivery.notice.daysBefore,
+        recordTitle: keyDate.record.title,
+        keyDate: keyDate.date,
+        daysLeft: delivery.daysLeft,
+      },
+    };
   }
 
   /**
@@ -143,7 +187,7 @@ export class ReminderDeliveries {
   private async stillToRemind(
     tx: DatabaseTransaction,
     workspaceId: string,
-    occurrence: DueOccurrence,
+    occurrence: Occurrence,
   ): Promise<RemindableDate | undefined> {
     const keyDate = (await this.keyDates.ofRecord(tx, workspaceId, occurrence.recordId)).find(
       ({ fieldKey }) => fieldKey === occurrence.fieldKey,
@@ -161,67 +205,55 @@ export class ReminderDeliveries {
   }
 
   /**
-   * Delivers the locked notice closest to the date and drops those it overtakes. The email goes
-   * out only after the delivery is recorded, inside the same transaction.
-   */
-  private async deliverDueNotice(
-    tx: DatabaseTransaction,
-    { workspaceId, occurrence, keyDate, locked }: LockedOccurrence,
-    { today, recipients }: Sending,
-  ): Promise<void> {
-    const notices = new Map(
-      locked
-        .filter(({ daysBefore }) => keyDate.reminderDaysBefore.includes(daysBefore))
-        .map((row) => [toDueNotice(row), row.id] as const),
-    );
-    const delivery = noticeToDeliver({
-      keyDate: keyDate.date,
-      notices: [...notices.keys()],
-      today,
-    });
-    if (delivery === undefined) return;
-
-    const isFirstDelivery = await this.recordDelivery(tx, workspaceId, occurrence, delivery);
-    await deleteNotices(
-      tx,
-      [delivery.notice, ...delivery.overtaken].flatMap((notice) => {
-        const id = notices.get(notice);
-        return id === undefined ? [] : [{ id }];
-      }),
-    );
-    // Delivered once already under its key, or not urgent: it waits for the digest.
-    if (!isFirstDelivery || !delivery.isUrgent) return;
-    await this.emails.send(recipients, {
-      recordId: occurrence.recordId,
-      fieldKey: occurrence.fieldKey,
-      daysBefore: delivery.notice.daysBefore,
-      recordTitle: keyDate.record.title,
-      keyDate: keyDate.date,
-      daysLeft: delivery.daysLeft,
-    });
-  }
-
-  /**
-   * Records the delivery under its unique key (ADR 0012). Resolves to false when that key was
-   * delivered already, as when a rebuild that raced a delivery scheduled the notice again.
+   * Records the delivery under its unique key (ADR 0012), or finds it there already, as when an
+   * earlier check delivered it but its email failed, or a rebuild that raced a delivery
+   * scheduled the notice again.
    */
   private async recordDelivery(
     tx: DatabaseTransaction,
     workspaceId: string,
-    occurrence: DueOccurrence,
+    occurrence: Occurrence,
     delivery: NoticeDelivery,
-  ): Promise<boolean> {
-    const { count } = await tx.reminderDelivery.createMany({
+  ) {
+    const key = { ...occurrence, daysBefore: delivery.notice.daysBefore };
+    await tx.reminderDelivery.createMany({
       data: {
         workspaceId,
-        ...occurrence,
-        daysBefore: delivery.notice.daysBefore,
+        ...key,
         isUrgent: delivery.isUrgent,
         deliveredAt: this.clock.now(),
       },
       skipDuplicates: true,
     });
-    return count === 1;
+    return tx.reminderDelivery.findUniqueOrThrow({
+      where: { recordId_fieldKey_occursOn_daysBefore: key },
+      select: { id: true, isUrgent: true, emailedAt: true },
+    });
+  }
+
+  /** Emails the reminder and marks it emailed in one transaction, unless another holds it. */
+  private async sendOwedEmail(
+    workspaceId: string,
+    owed: OwedEmail,
+    recipients: readonly string[],
+  ): Promise<void> {
+    await this.database.$scopedTransaction(
+      { workspaceId },
+      async (tx) => {
+        const [unsent] = await tx.$queryRaw<{ id: string }[]>`
+          SELECT id FROM reminder_delivery
+          WHERE workspace_id = ${workspaceId} AND id = ${owed.deliveryId} AND emailed_at IS NULL
+          FOR UPDATE SKIP LOCKED`;
+        if (unsent === undefined) return;
+        await this.emails.send(recipients, owed.reminder);
+        await tx.reminderDelivery.update({
+          where: { id: owed.deliveryId },
+          data: { emailedAt: this.clock.now() },
+        });
+        await deleteNotices(tx, [{ id: owed.noticeId }]);
+      },
+      { timeoutMs: EMAIL_TRANSACTION_TIMEOUT_MS },
+    );
   }
 }
 
@@ -233,13 +265,13 @@ function dueOn(today: CalendarDate) {
 
 /**
  * Locks the occurrence's notices that are due by today. Rows another delivery holds are
- * skipped rather than waited for: that delivery either sends them or leaves them for the next
- * check.
+ * skipped rather than waited for: that delivery either delivers them or leaves them for the
+ * next check.
  */
 async function lockDueNotices(
   tx: DatabaseTransaction,
   workspaceId: string,
-  { recordId, fieldKey, occursOn }: DueOccurrence,
+  { recordId, fieldKey, occursOn }: Occurrence,
   today: CalendarDate,
 ): Promise<readonly LockedNotice[]> {
   return tx.$queryRaw<LockedNotice[]>`
@@ -261,8 +293,4 @@ async function deleteNotices(
 
 function toDueNotice({ daysBefore, remindOn, lapsesOn }: LockedNotice): DueNotice {
   return { daysBefore, remindOn: calendarDateOf(remindOn), lapsesOn: calendarDateOf(lapsesOn) };
-}
-
-function errorName(error: unknown): string {
-  return error instanceof Error ? error.name : 'unknown error';
 }

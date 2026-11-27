@@ -5,7 +5,7 @@ import { UserEmailAddresses } from '../identity/user-email-addresses.js';
 import { AppConfig } from '../platform/config/app-config.js';
 import { EmailSender } from '../platform/email/email-sender.js';
 import { WorkspaceMembers } from '../workspaces/workspace-members.js';
-import { reminderEmail } from './reminder-email.js';
+import { reminderEmailMessage } from './reminder-email-message.js';
 
 /** The web app's page for a record, which the email links to. */
 const RECORD_PAGE_PATH = '/app/records/';
@@ -54,7 +54,7 @@ export class ReminderEmails {
     ).toString();
     for (const to of recipients) {
       await this.email.send(
-        reminderEmail({
+        reminderEmailMessage({
           to,
           recordTitle: reminder.recordTitle,
           keyDate: reminder.keyDate,
