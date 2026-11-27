@@ -33,3 +33,4 @@ export {
   type DueNoticeSources,
   type ReminderHandling,
 } from './reminders/outstanding-due-notices.js';
+export { isOnAttentionList, isSnoozeAhead } from './reminders/snooze.js';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { calendarDateOf, dayNumberOf, dayOfIso, isoDayOf } from '@omniva/domain-rules';
+import { calendarDateOf, dayOfIso, isoDayOf, isSnoozeAhead } from '@omniva/domain-rules';
 import type { ReminderStatus, SetReminderStatusRequest } from '@omniva/schemas';
 import type { WorkspaceAccess } from '../identity/workspace-access.js';
 import { Clock } from '../platform/clock/clock.js';
@@ -33,7 +33,9 @@ export class ReminderStatuses {
   ): Promise<ReminderStatus> {
     const now = this.clock.now();
     const snoozedUntil = request.status === 'snoozed' ? request.until : null;
-    if (snoozedUntil !== null) assertAhead(snoozedUntil, now);
+    if (snoozedUntil !== null && !isSnoozeAhead(dayOfIso(snoozedUntil), calendarDateOf(now))) {
+      throw new SnoozeNotAhead('A snooze must end after today.');
+    }
     return this.database.$scopedTransaction(access, async (transaction) => {
       const occurrence = await this.currentOccurrence(transaction, access.workspaceId, {
         recordId,
@@ -74,11 +76,5 @@ export class ReminderStatuses {
       throw new KeyDateNotFound('The record has no such Key date on that day.');
     }
     return { recordId, fieldKey, occursOn: dateColumnOf(keyDate.date.day) };
-  }
-}
-
-function assertAhead(until: string, now: Date): void {
-  if (dayNumberOf(dayOfIso(until)) <= dayNumberOf(calendarDateOf(now))) {
-    throw new SnoozeNotAhead('A snooze must end after today.');
   }
 }

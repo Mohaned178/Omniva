@@ -5,9 +5,9 @@ import {
   ATTENTION_LOOKBACK_DAYS,
   calendarDateOf,
   dayNumberOf,
+  isOnAttentionList,
   isoDayOf,
   type DatedKeyDate,
-  type ReminderHandling,
 } from '@omniva/domain-rules';
 import type { CalendarDate, KeyDateAttentionItem, KeyDateAttentionList } from '@omniva/schemas';
 import type { DatabaseTransaction } from '../platform/database/database-transaction.js';
@@ -116,7 +116,7 @@ function upcomingItemOf(
 ): KeyDateAttentionItem[] {
   if (keyDate.date === undefined) return [];
   const isThisOccurrence = sameOccurrenceAs(keyDate, keyDate.date);
-  if (!isOnList(handlingOf(handlings.find(isThisOccurrence)), today)) return [];
+  if (!isOnAttentionList(handlingOf(handlings.find(isThisOccurrence)), today)) return [];
   const latest = deliveries.find(isThisOccurrence);
   if (latest === undefined && !isWithin(keyDate.date.day, { from, to })) return [];
   return [
@@ -146,22 +146,6 @@ function sameOccurrenceAs(keyDate: RemindableKeyDate, date: DatedKeyDate) {
     stored.recordId === keyDate.recordId &&
     stored.fieldKey === keyDate.fieldKey &&
     stored.occursOn.getTime() === occursOn;
-}
-
-/** A handled date is off the list for good; a snoozed one until its snooze ends. */
-function isOnList(handling: ReminderHandling, today: CalendarDate): boolean {
-  switch (handling.status) {
-    case 'open':
-      return true;
-    case 'handled':
-      return false;
-    case 'snoozed':
-      return dayNumberOf(handling.until) <= dayNumberOf(today);
-    default: {
-      const unknownStatus: never = handling;
-      return unknownStatus;
-    }
-  }
 }
 
 function isWithin(
