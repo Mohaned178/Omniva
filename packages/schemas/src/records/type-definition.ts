@@ -29,6 +29,15 @@ export const ReminderRuleSchema = z
 export type ReminderRule = z.infer<typeof ReminderRuleSchema>;
 
 /**
+ * Two of a Type's date fields where `earlier` should not come after `later`, such as an
+ * issue date and an expiry; a pair that breaks it is flagged before saving (spec D45).
+ */
+export const DateOrderSchema = z
+  .object({ earlier: FieldKeySchema, later: FieldKeySchema })
+  .meta({ id: 'DateOrder' });
+export type DateOrder = z.infer<typeof DateOrderSchema>;
+
+/**
  * The one definition shape every Type uses, built in or custom (ADR 0007, ADR 0011): its
  * fields, which of them are Key dates, the reminders it sets by default, its home module and
  * the building block it is built on.
@@ -41,11 +50,23 @@ export const TypeDefinitionSchema = z
     fields: z.array(FieldDefinitionSchema),
     keyDateFields: z.array(FieldKeySchema),
     defaultReminderRules: z.array(ReminderRuleSchema),
+    dateOrder: z.array(DateOrderSchema),
   })
   .superRefine((definition, context) => {
     const dateFields = new Set(
       definition.fields.filter(({ kind }) => kind === 'date').map(({ key }) => key),
     );
+    for (const [index, order] of definition.dateOrder.entries()) {
+      for (const side of ['earlier', 'later'] as const) {
+        if (!dateFields.has(order[side])) {
+          context.addIssue({
+            code: 'custom',
+            path: ['dateOrder', index, side],
+            message: 'A date order must name the Type’s date fields',
+          });
+        }
+      }
+    }
     for (const [index, field] of definition.keyDateFields.entries()) {
       if (!dateFields.has(field)) {
         context.addIssue({

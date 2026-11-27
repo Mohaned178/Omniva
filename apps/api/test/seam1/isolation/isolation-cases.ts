@@ -140,6 +140,17 @@ export const ISOLATION_CASES: Readonly<Record<string, IsolationCase>> = {
     return { params, secrets, query: { module: 'assets' } };
   },
 
+  // The victim's Key dates, and the titles of the records they belong to, stay theirs.
+  getKeyDateAttention: async (victim) => {
+    const workspaceId = victim.session.personalWorkspace.id;
+    const title = `Victim's dated car ${randomUUID()}`;
+    await victim.user.api.POST('/v1/workspaces/{workspaceId}/records', {
+      params: { path: { workspaceId } },
+      body: { typeKey: 'vehicle', title, fields: { inspectionDueOn: 'missing' } },
+    });
+    return { params: { workspaceId }, secrets: [title] };
+  },
+
   getRecord: atVictimsVehicle(),
   getRecordHistory: atVictimsVehicle(),
   updateRecord: atVictimsVehicle({ title: 'Renamed by an intruder' }),

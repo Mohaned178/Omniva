@@ -11,7 +11,8 @@ import { FIELD_KIND_INPUTS } from './field-kind-inputs';
 /** What the form's inputs hold: text, keyed like the record. */
 const RecordFormInputSchema = z.object({
   title: z.string(),
-  fields: z.record(z.string(), z.string()),
+  // A Key date's input registers with no value until it is touched.
+  fields: z.record(z.string(), z.string().optional()),
 });
 
 export type RecordFormValues = z.input<typeof RecordFormInputSchema>;

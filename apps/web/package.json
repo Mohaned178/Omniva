@@ -13,6 +13,7 @@
   "dependencies": {
     "@hookform/resolvers": "7.0.9",
     "@omniva/api-client": "workspace:*",
+    "@omniva/domain-rules": "workspace:*",
     "@omniva/schemas": "workspace:*",
     "@tanstack/react-query": "5.108.4",
     "class-variance-authority": "^0.7.1",

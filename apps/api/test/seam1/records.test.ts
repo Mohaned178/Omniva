@@ -235,6 +235,10 @@ describe('a Vehicle record', () => {
         { keyDateField: 'registrationExpiresOn', daysBefore: 30 },
         { keyDateField: 'inspectionDueOn', daysBefore: 30 },
       ],
+      dateOrder: [
+        { earlier: 'purchasedOn', later: 'registrationExpiresOn' },
+        { earlier: 'purchasedOn', later: 'inspectionDueOn' },
+      ],
     });
   });
 

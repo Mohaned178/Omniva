@@ -1,17 +1,20 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { RecordView, TypeDefinition } from '@omniva/schemas';
+import { implausibleDatesIn, type RecordView, type TypeDefinition } from '@omniva/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import { calendarDateOf, type ImplausibleDate } from '@omniva/domain-rules';
 import { useWorkspaceId } from '@/components/app/use-workspace-id';
 import { Button } from '@/components/ui/button';
 import { FormAlert } from '@/components/ui/form-alert';
 import { FormField } from '@/components/ui/form-field';
+import { ImplausibleDatesWarning } from '@/components/key-dates/implausible-dates-warning';
+import { KeyDateField } from '@/components/key-dates/key-date-field';
 import { api } from '@/lib/api';
 import { recordPath } from '@/lib/routes';
 import {
@@ -39,8 +42,10 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
   const wording = useTypeWording();
   const save = useSaveRecord(type, record);
   const [hasFailed, setHasFailed] = useState(false);
+  const [implausible, setImplausible] = useState<readonly ImplausibleDate[]>([]);
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RecordFormValues, unknown, RecordFormOutput>({
@@ -48,9 +53,22 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
     defaultValues: recordFormValuesOf(record),
   });
 
+  /** Warns about dates that look like typos, and saves only once the user confirms them. */
   async function submit(values: RecordFormOutput): Promise<void> {
     setHasFailed(false);
-    setHasFailed(!(await save(values)));
+    const found = implausibleDatesIn({
+      type,
+      fields: values.fields,
+      today: calendarDateOf(new Date()),
+      ...(record && { previousFields: record.fields }),
+    });
+    setImplausible(found);
+    if (found.length > 0) return;
+    setHasFailed(!(await save(values, { acknowledgeImplausibleDates: false })));
+  }
+
+  async function saveAsGiven(values: RecordFormOutput): Promise<void> {
+    setHasFailed(!(await save(values, { acknowledgeImplausibleDates: true })));
   }
 
   return (
@@ -76,6 +94,24 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
         />
         {type.fields.map(({ key, kind }) => {
           const { inputType, inputMode, errorMessage } = FIELD_KIND_INPUTS[kind];
+          if (type.keyDateFields.includes(key)) {
+            return (
+              <Controller
+                key={key}
+                control={control}
+                name={`fields.${key}`}
+                render={({ field }) => (
+                  <KeyDateField
+                    label={wording.fieldLabel(type.key, key)}
+                    value={typeof field.value === 'string' ? field.value : ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    error={errors.fields?.[key] ? t(`errors.${errorMessage}`) : undefined}
+                  />
+                )}
+              />
+            );
+          }
           return (
             <FormField
               key={key}
@@ -88,6 +124,13 @@ export function RecordForm({ type, heading, record, cancelPath }: RecordFormProp
             />
           );
         })}
+        {implausible.length > 0 ? (
+          <ImplausibleDatesWarning
+            type={type}
+            found={implausible}
+            onSaveAsGiven={() => void handleSubmit(saveAsGiven)()}
+          />
+        ) : null}
         <div className="flex flex-wrap items-center gap-4">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? t('saving') : t('save')}
@@ -110,15 +153,23 @@ function useSaveRecord(type: TypeDefinition, record: RecordView | undefined) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  return async (values: RecordFormOutput): Promise<boolean> => {
+  return async (
+    values: RecordFormOutput,
+    { acknowledgeImplausibleDates }: { readonly acknowledgeImplausibleDates: boolean },
+  ): Promise<boolean> => {
     const { data } = record
       ? await api.PATCH('/v1/workspaces/{workspaceId}/records/{recordId}', {
           params: { path: { workspaceId, recordId: record.id } },
-          body: { title: values.title, fields: values.fields },
+          body: { title: values.title, fields: values.fields, acknowledgeImplausibleDates },
         })
       : await api.POST('/v1/workspaces/{workspaceId}/records', {
           params: { path: { workspaceId } },
-          body: { typeKey: type.key, title: values.title, fields: values.fields },
+          body: {
+            typeKey: type.key,
+            title: values.title,
+            fields: values.fields,
+            acknowledgeImplausibleDates,
+          },
         });
     if (!data) return false;
     await queryClient.invalidateQueries({ queryKey: recordKeys.all(workspaceId) });

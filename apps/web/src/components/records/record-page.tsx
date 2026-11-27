@@ -1,11 +1,13 @@
 'use client';
 
-import type { FieldKind, RecordView } from '@omniva/schemas';
+import { parseDateValue } from '@omniva/domain-rules';
+import type { FieldDefinition, FieldKind, RecordView, TypeDefinition } from '@omniva/schemas';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { useCurrentSession } from '@/components/app/use-current-session';
 import { useWorkspaceId } from '@/components/app/use-workspace-id';
+import { useKeyDateText, useKeyDateWords } from '@/components/key-dates/use-key-date-words';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ButtonLink } from '@/components/ui/button-link';
@@ -82,11 +84,70 @@ function useArchiveToggle(record: RecordView) {
 }
 
 function RecordDetails({ record }: { readonly record: RecordView }) {
+  const type = useTypes().data?.find(({ key }) => key === record.typeKey);
+  const isKeyDate = (key: string): boolean => type?.keyDateFields.includes(key) ?? false;
+  const filled = (type?.fields ?? []).filter(
+    ({ key }) => record.fields[key] !== undefined && !isKeyDate(key),
+  );
+
+  return (
+    <>
+      <ImportantDates record={record} type={type} />
+      <RecordFieldDetails record={record} filled={filled} />
+    </>
+  );
+}
+
+/** A record's Key dates, each said in plain words so a mistake shows at once (spec D46). */
+function ImportantDates({
+  record,
+  type,
+}: {
+  readonly record: RecordView;
+  readonly type: TypeDefinition | undefined;
+}) {
+  const t = useTranslations('keyDates.page');
+  const wording = useTypeWording();
+  const dateText = useKeyDateText();
+  const words = useKeyDateWords();
+  const given = (type?.keyDateFields ?? []).flatMap((key) => {
+    const value = record.fields[key];
+    return typeof value === 'string' ? [{ key, value }] : [];
+  });
+  if (given.length === 0) return null;
+
+  return (
+    <section aria-labelledby="record-important-dates" className="space-y-3">
+      <h2 id="record-important-dates" className="text-xl font-semibold">
+        {t('heading')}
+      </h2>
+      <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[max-content_1fr]">
+        {given.map(({ key, value }) => (
+          <div key={key} className="contents">
+            <dt className="text-muted-foreground">{wording.fieldLabel(record.typeKey, key)}</dt>
+            <dd>
+              <span>{dateText(value)}</span>
+              {parseDateValue(value)?.precision === 'missing' ? null : (
+                <span className="text-muted-foreground"> · {words(value)}</span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function RecordFieldDetails({
+  record,
+  filled,
+}: {
+  readonly record: RecordView;
+  readonly filled: readonly FieldDefinition[];
+}) {
   const t = useTranslations('records');
   const wording = useTypeWording();
   const formatValue = useFieldValueFormat();
-  const type = useTypes().data?.find(({ key }) => key === record.typeKey);
-  const filled = (type?.fields ?? []).filter(({ key }) => record.fields[key] !== undefined);
 
   return (
     <section aria-labelledby="record-details" className="space-y-3">
