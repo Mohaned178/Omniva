@@ -210,6 +210,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspaceId}/key-dates/attention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Key dates coming up and the ones marked missing */
+        get: operations["getKeyDateAttention"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspaceId}": {
         parameters: {
             query?: never;
@@ -295,11 +312,61 @@ export interface components {
             typeKey: components["schemas"]["TypeKey"];
             title: string;
             fields: components["schemas"]["RecordFields"];
+            acknowledgeImplausibleDates?: boolean;
         };
         /** @enum {string} */
+        Block: "item" | "document" | "money_record" | "obligation" | "event" | "task" | "person" | "note" | "plan" | "measurement";
+        /** @enum {string} */
         LifeModule: "productivity" | "finance" | "health" | "knowledge" | "career" | "assets" | "social" | "travel" | "home" | "subscriptions" | "documents" | "entertainment";
+        FieldKey: string;
+        FieldDefinition: {
+            key: components["schemas"]["FieldKey"];
+            /** @enum {string} */
+            kind: "text" | "number" | "date";
+        };
+        ReminderRule: {
+            keyDateField: components["schemas"]["FieldKey"];
+            daysBefore: number;
+        };
+        DateOrder: {
+            earlier: components["schemas"]["FieldKey"];
+            later: components["schemas"]["FieldKey"];
+        };
+        TypeDefinition: {
+            key: components["schemas"]["TypeKey"];
+            block: components["schemas"]["Block"];
+            homeModule: components["schemas"]["LifeModule"];
+            fields: components["schemas"]["FieldDefinition"][];
+            keyDateFields: components["schemas"]["FieldKey"][];
+            defaultReminderRules: components["schemas"]["ReminderRule"][];
+            dateOrder: components["schemas"]["DateOrder"][];
+        };
+        TypeList: {
+            types: components["schemas"]["TypeDefinition"][];
+        };
         /** Format: uuid */
         RecordId: string;
+        KeyDateAttentionItem: {
+            recordId: components["schemas"]["RecordId"];
+            recordTitle: string;
+            typeKey: components["schemas"]["TypeKey"];
+            fieldKey: components["schemas"]["FieldKey"];
+            /** @enum {string} */
+            precision: "exact" | "month";
+            /** Format: date */
+            date: string;
+            daysUntil: number;
+        };
+        MissingKeyDateItem: {
+            recordId: components["schemas"]["RecordId"];
+            recordTitle: string;
+            typeKey: components["schemas"]["TypeKey"];
+            fieldKey: components["schemas"]["FieldKey"];
+        };
+        KeyDateAttentionList: {
+            upcoming: components["schemas"]["KeyDateAttentionItem"][];
+            missing: components["schemas"]["MissingKeyDateItem"][];
+        };
         /** @enum {string} */
         LifecycleState: "owned" | "disposed" | "active" | "ending" | "ended" | "valid" | "expired" | "open" | "done" | "upcoming" | "in_progress" | "past";
         Record: {
@@ -318,32 +385,10 @@ export interface components {
         RecordList: {
             records: components["schemas"]["Record"][];
         };
-        /** @enum {string} */
-        Block: "item" | "document" | "money_record" | "obligation" | "event" | "task" | "person" | "note" | "plan" | "measurement";
-        FieldKey: string;
-        FieldDefinition: {
-            key: components["schemas"]["FieldKey"];
-            /** @enum {string} */
-            kind: "text" | "number" | "date";
-        };
-        ReminderRule: {
-            keyDateField: components["schemas"]["FieldKey"];
-            daysBefore: number;
-        };
-        TypeDefinition: {
-            key: components["schemas"]["TypeKey"];
-            block: components["schemas"]["Block"];
-            homeModule: components["schemas"]["LifeModule"];
-            fields: components["schemas"]["FieldDefinition"][];
-            keyDateFields: components["schemas"]["FieldKey"][];
-            defaultReminderRules: components["schemas"]["ReminderRule"][];
-        };
-        TypeList: {
-            types: components["schemas"]["TypeDefinition"][];
-        };
         UpdateRecordRequest: {
             title?: string;
             fields?: components["schemas"]["RecordFields"];
+            acknowledgeImplausibleDates?: boolean;
         };
         /** Format: uuid */
         WorkspaceId: string;
@@ -875,6 +920,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TypeList"];
+                };
+            };
+            /** @description The workspace does not exist, or the user is not a member of it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getKeyDateAttention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: components["schemas"]["WorkspaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The attention list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyDateAttentionList"];
                 };
             };
             /** @description The workspace does not exist, or the user is not a member of it */

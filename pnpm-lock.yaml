@@ -123,6 +123,9 @@ importers:
       '@omniva/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@omniva/domain-rules':
+        specifier: workspace:*
+        version: link:../../packages/domain-rules
       '@omniva/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -219,6 +222,9 @@ importers:
 
   packages/schemas:
     dependencies:
+      '@omniva/domain-rules':
+        specifier: workspace:*
+        version: link:../domain-rules
       '@omniva/domain-types':
         specifier: workspace:*
         version: link:../domain-types

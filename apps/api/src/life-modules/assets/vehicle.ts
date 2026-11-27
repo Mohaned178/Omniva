@@ -26,4 +26,8 @@ export const VEHICLE: TypeDefinition = {
     { keyDateField: 'registrationExpiresOn', daysBefore: ANNUAL_RENEWAL_REMINDER_DAYS },
     { keyDateField: 'inspectionDueOn', daysBefore: ANNUAL_RENEWAL_REMINDER_DAYS },
   ],
+  dateOrder: [
+    { earlier: 'purchasedOn', later: 'registrationExpiresOn' },
+    { earlier: 'purchasedOn', later: 'inspectionDueOn' },
+  ],
 };

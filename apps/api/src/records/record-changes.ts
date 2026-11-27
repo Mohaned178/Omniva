@@ -1,6 +1,6 @@
 import { isDeepStrictEqual } from 'node:util';
 import { Injectable } from '@nestjs/common';
-import { initialLifecycleState } from '@omniva/domain-rules';
+import { calendarDateOf, initialLifecycleState } from '@omniva/domain-rules';
 import {
   recordFieldsSchemaFor,
   type ActivityAction,
@@ -16,6 +16,8 @@ import type { DatabaseTransaction } from '../platform/database/database-transact
 import { ScopedDatabase } from '../platform/database/scoped-database.js';
 import { parseInput } from '../platform/validation/parse-input.js';
 import { UnknownType } from './errors/unknown-type.js';
+import { assertPlausibleDates } from './key-dates/plausible-dates.js';
+import { KeyDateCollection } from './key-dates/key-date-collection.js';
 import { RecordChangeLog } from './record-change-log.js';
 import {
   STORED_RECORD_SELECT,
@@ -35,6 +37,7 @@ export class RecordChanges {
     private readonly database: ScopedDatabase,
     private readonly types: TypeCatalog,
     private readonly changeLog: RecordChangeLog,
+    private readonly keyDates: KeyDateCollection,
     private readonly clock: Clock,
   ) {}
 
@@ -43,6 +46,9 @@ export class RecordChanges {
     const type = this.typeCalled(request.typeKey);
     const fields = validFields(type, request.fields);
     const now = this.clock.now();
+    if (request.acknowledgeImplausibleDates !== true) {
+      assertPlausibleDates({ type, fields, today: calendarDateOf(now) });
+    }
     return this.database.$scopedTransaction(access, async (transaction) => {
       const record = await transaction.record.create({
         data: {
@@ -57,6 +63,12 @@ export class RecordChanges {
           updatedAt: now,
         },
         select: STORED_RECORD_SELECT,
+      });
+      await this.keyDates.keepInStepWith(transaction, {
+        workspaceId: access.workspaceId,
+        recordId: record.id,
+        type,
+        fields,
       });
       await this.noteChange(transaction, access, record, 'created');
       return toRecordView(record);
@@ -74,16 +86,30 @@ export class RecordChanges {
   ): Promise<RecordView> {
     return this.database.$scopedTransaction(access, async (transaction) => {
       const current = toRecordView(await storedRecordOf(transaction, access, recordId));
+      const type = this.typeCalled(current.typeKey);
       const title = request.title ?? current.title;
       const fields =
-        request.fields === undefined
-          ? current.fields
-          : validFields(this.typeCalled(current.typeKey), request.fields);
+        request.fields === undefined ? current.fields : validFields(type, request.fields);
       if (title === current.title && isDeepStrictEqual(fields, current.fields)) return current;
+      const now = this.clock.now();
+      if (request.acknowledgeImplausibleDates !== true) {
+        assertPlausibleDates({
+          type,
+          fields,
+          today: calendarDateOf(now),
+          previousFields: current.fields,
+        });
+      }
       const record = await transaction.record.update({
         where: { id: recordId },
-        data: { title, fields, updatedAt: this.clock.now() },
+        data: { title, fields, updatedAt: now },
         select: STORED_RECORD_SELECT,
+      });
+      await this.keyDates.keepInStepWith(transaction, {
+        workspaceId: access.workspaceId,
+        recordId,
+        type,
+        fields,
       });
       await this.noteChange(transaction, access, record, 'updated');
       return toRecordView(record);

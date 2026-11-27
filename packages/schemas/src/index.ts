@@ -24,11 +24,24 @@ export {
   SignUpRequestSchema,
   type SignUpRequest,
 } from './identity/sign-up-request.js';
-export type { Block, LifeModule, LifecycleState, MemberRole } from '@omniva/domain-types';
+export type {
+  Block,
+  CalendarDate,
+  DateValue,
+  LifeModule,
+  LifecycleState,
+  MemberRole,
+} from '@omniva/domain-types';
 export {
   CreateRecordRequestSchema,
   type CreateRecordRequest,
 } from './records/create-record-request.js';
+export {
+  KeyDateAttentionListSchema,
+  type KeyDateAttentionItem,
+  type KeyDateAttentionList,
+  type MissingKeyDateItem,
+} from './records/key-date-attention.js';
 export { LifeModuleSchema } from './records/life-module.js';
 export {
   RecordFieldsSchema,
@@ -47,6 +60,7 @@ export {
 export {
   TypeDefinitionSchema,
   TypeListSchema,
+  type DateOrder,
   type FieldDefinition,
   type FieldKind,
   type TypeDefinition,
@@ -58,3 +72,5 @@ export {
 } from './records/update-record-request.js';
 export { WorkspaceSchema, type Workspace } from './workspaces/workspace.js';
 export { WorkspaceIdSchema } from './workspaces/workspace-id.js';
+export { implausibleDatesIn } from './records/implausible-dates-in.js';
+export type { ImplausibleDate } from '@omniva/domain-rules';

@@ -146,6 +146,10 @@ _Avoid_: Approximate date, fuzzy date
 The state of a key date the user doesn't know yet, surfaced gently until it is filled in.
 _Avoid_: Unknown date, empty date
 
+**Attention list**:
+What needs the user's notice, shown first on the Overview: key dates coming up or just passed, and dates missing. Items stay on it until handled.
+_Avoid_: Notifications, to-do list
+
 **Reminder**:
 A notice attached to a key date (an Event's start counts as a key date). Reminders are not records of their own.
 _Avoid_: Alert, notification (the delivery, not the reminder)

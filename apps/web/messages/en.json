@@ -321,6 +321,51 @@
       }
     }
   },
+  "keyDates": {
+    "field": {
+      "precision": "How well do you know this date?",
+      "exact": "Exact day",
+      "month": "Month only",
+      "missing": "Date missing"
+    },
+    "words": {
+      "today": "today",
+      "ahead": {
+        "days": "in {count, plural, one {# day} other {# days}}",
+        "weeks": "in {count, plural, one {# week} other {# weeks}}",
+        "months": "in {count, plural, one {# month} other {# months}}",
+        "years": "in {count, plural, one {# year} other {# years}}"
+      },
+      "behind": {
+        "days": "{count, plural, one {# day} other {# days}} ago",
+        "weeks": "{count, plural, one {# week} other {# weeks}} ago",
+        "months": "{count, plural, one {# month} other {# months}} ago",
+        "years": "{count, plural, one {# year} other {# years}} ago"
+      },
+      "monthOnly": "sometime in {month}. Add the exact day when you know it.",
+      "aboutThen": "{words} (month only)",
+      "missing": "date missing"
+    },
+    "implausible": {
+      "heading": "Some dates look like a typo.",
+      "tooFarAhead": "{field} is a very long way off.",
+      "tooFarBehind": "{field} is a very long time ago.",
+      "beforeEarlier": "{field} comes before {earlier}.",
+      "advice": "Check the dates above. If they are right, you can save them as they are.",
+      "saveAsGiven": "Save as given"
+    },
+    "page": {
+      "heading": "Important dates"
+    },
+    "attention": {
+      "heading": "Needs your attention",
+      "empty": "Nothing needs your attention right now.",
+      "upcoming": "Coming up",
+      "missing": "Dates to find",
+      "missingItem": "{field} is missing.",
+      "fill": "Add it"
+    }
+  },
   "types": {
     "vehicle": {
       "name": "Vehicle",

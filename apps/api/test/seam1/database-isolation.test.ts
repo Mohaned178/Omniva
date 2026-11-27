@@ -170,7 +170,7 @@ describe('PostgreSQL row-level security, with the application gate bypassed', ()
     });
 
     expect(tables.map(({ table }) => table)).toEqual(
-      expect.arrayContaining(['activity_entry', 'member', 'record', 'workspace']),
+      expect.arrayContaining(['activity_entry', 'key_date', 'member', 'record', 'workspace']),
     );
     expect(
       tables.filter(

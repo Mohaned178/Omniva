@@ -734,6 +734,52 @@
         "x-omniva-minimum-role": "viewer"
       }
     },
+    "/v1/workspaces/{workspaceId}/key-dates/attention": {
+      "get": {
+        "operationId": "getKeyDateAttention",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/WorkspaceId"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The attention list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyDateAttentionList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The workspace does not exist, or the user is not a member of it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The Key dates coming up and the ones marked missing",
+        "tags": [
+          "key-dates"
+        ],
+        "x-omniva-minimum-role": "viewer"
+      }
+    },
     "/v1/workspaces/{workspaceId}": {
       "get": {
         "operationId": "getWorkspace",
@@ -1062,6 +1108,9 @@
           },
           "fields": {
             "$ref": "#/components/schemas/RecordFields"
+          },
+          "acknowledgeImplausibleDates": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1070,6 +1119,21 @@
           "fields"
         ],
         "additionalProperties": false
+      },
+      "Block": {
+        "type": "string",
+        "enum": [
+          "item",
+          "document",
+          "money_record",
+          "obligation",
+          "event",
+          "task",
+          "person",
+          "note",
+          "plan",
+          "measurement"
+        ]
       },
       "LifeModule": {
         "type": "string",
@@ -1088,10 +1152,223 @@
           "entertainment"
         ]
       },
+      "FieldKey": {
+        "type": "string",
+        "maxLength": 64,
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      },
+      "FieldDefinition": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "number",
+              "date"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "ReminderRule": {
+        "type": "object",
+        "properties": {
+          "keyDateField": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "daysBefore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "keyDateField",
+          "daysBefore"
+        ],
+        "additionalProperties": false
+      },
+      "DateOrder": {
+        "type": "object",
+        "properties": {
+          "earlier": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "later": {
+            "$ref": "#/components/schemas/FieldKey"
+          }
+        },
+        "required": [
+          "earlier",
+          "later"
+        ],
+        "additionalProperties": false
+      },
+      "TypeDefinition": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "block": {
+            "$ref": "#/components/schemas/Block"
+          },
+          "homeModule": {
+            "$ref": "#/components/schemas/LifeModule"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldDefinition"
+            }
+          },
+          "keyDateFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldKey"
+            }
+          },
+          "defaultReminderRules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReminderRule"
+            }
+          },
+          "dateOrder": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DateOrder"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "block",
+          "homeModule",
+          "fields",
+          "keyDateFields",
+          "defaultReminderRules",
+          "dateOrder"
+        ],
+        "additionalProperties": false
+      },
+      "TypeList": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TypeDefinition"
+            }
+          }
+        },
+        "required": [
+          "types"
+        ],
+        "additionalProperties": false
+      },
       "RecordId": {
         "type": "string",
         "format": "uuid",
         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+      },
+      "KeyDateAttentionItem": {
+        "type": "object",
+        "properties": {
+          "recordId": {
+            "$ref": "#/components/schemas/RecordId"
+          },
+          "recordTitle": {
+            "type": "string"
+          },
+          "typeKey": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "fieldKey": {
+            "$ref": "#/components/schemas/FieldKey"
+          },
+          "precision": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "month"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "daysUntil": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "recordId",
+          "recordTitle",
+          "typeKey",
+          "fieldKey",
+          "precision",
+          "date",
+          "daysUntil"
+        ],
+        "additionalProperties": false
+      },
+      "MissingKeyDateItem": {
+        "type": "object",
+        "properties": {
+          "recordId": {
+            "$ref": "#/components/schemas/RecordId"
+          },
+          "recordTitle": {
+            "type": "string"
+          },
+          "typeKey": {
+            "$ref": "#/components/schemas/TypeKey"
+          },
+          "fieldKey": {
+            "$ref": "#/components/schemas/FieldKey"
+          }
+        },
+        "required": [
+          "recordId",
+          "recordTitle",
+          "typeKey",
+          "fieldKey"
+        ],
+        "additionalProperties": false
+      },
+      "KeyDateAttentionList": {
+        "type": "object",
+        "properties": {
+          "upcoming": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyDateAttentionItem"
+            }
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissingKeyDateItem"
+            }
+          }
+        },
+        "required": [
+          "upcoming",
+          "missing"
+        ],
+        "additionalProperties": false
       },
       "LifecycleState": {
         "type": "string",
@@ -1178,121 +1455,6 @@
         ],
         "additionalProperties": false
       },
-      "Block": {
-        "type": "string",
-        "enum": [
-          "item",
-          "document",
-          "money_record",
-          "obligation",
-          "event",
-          "task",
-          "person",
-          "note",
-          "plan",
-          "measurement"
-        ]
-      },
-      "FieldKey": {
-        "type": "string",
-        "maxLength": 64,
-        "pattern": "^[a-z][A-Za-z0-9]*$"
-      },
-      "FieldDefinition": {
-        "type": "object",
-        "properties": {
-          "key": {
-            "$ref": "#/components/schemas/FieldKey"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "text",
-              "number",
-              "date"
-            ]
-          }
-        },
-        "required": [
-          "key",
-          "kind"
-        ],
-        "additionalProperties": false
-      },
-      "ReminderRule": {
-        "type": "object",
-        "properties": {
-          "keyDateField": {
-            "$ref": "#/components/schemas/FieldKey"
-          },
-          "daysBefore": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
-          }
-        },
-        "required": [
-          "keyDateField",
-          "daysBefore"
-        ],
-        "additionalProperties": false
-      },
-      "TypeDefinition": {
-        "type": "object",
-        "properties": {
-          "key": {
-            "$ref": "#/components/schemas/TypeKey"
-          },
-          "block": {
-            "$ref": "#/components/schemas/Block"
-          },
-          "homeModule": {
-            "$ref": "#/components/schemas/LifeModule"
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FieldDefinition"
-            }
-          },
-          "keyDateFields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FieldKey"
-            }
-          },
-          "defaultReminderRules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReminderRule"
-            }
-          }
-        },
-        "required": [
-          "key",
-          "block",
-          "homeModule",
-          "fields",
-          "keyDateFields",
-          "defaultReminderRules"
-        ],
-        "additionalProperties": false
-      },
-      "TypeList": {
-        "type": "object",
-        "properties": {
-          "types": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TypeDefinition"
-            }
-          }
-        },
-        "required": [
-          "types"
-        ],
-        "additionalProperties": false
-      },
       "UpdateRecordRequest": {
         "type": "object",
         "properties": {
@@ -1307,6 +1469,9 @@
                 "$ref": "#/components/schemas/RecordFields"
               }
             ]
+          },
+          "acknowledgeImplausibleDates": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

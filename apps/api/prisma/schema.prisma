@@ -116,6 +116,7 @@ model Workspace {
   members         Member[]
   records         Record[]
   activityEntries ActivityEntry[]
+  keyDates        KeyDate[]
 
   @@map("workspace")
 }
@@ -212,6 +213,7 @@ model Record {
   workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   member          Member?
   activityEntries ActivityEntry[]
+  keyDates        KeyDate[]
 
   @@index([workspaceId])
   @@index([workspaceId, homeModule])
@@ -251,4 +253,35 @@ model ActivityEntry {
   @@index([workspaceId, occurredAt])
   @@index([recordId])
   @@map("activity_entry")
+}
+
+// ── Key dates ─────────────────────────────────────────────────────────────────────────────
+
+enum KeyDatePrecision {
+  exact
+  month
+  missing
+
+  @@map("key_date_precision")
+}
+
+/// The one collection of Key dates, maintained by Records core whenever a record's date fields
+/// change; reminders, the calendar and the Overview read only from it (ADR 0008). It is derived
+/// from the records' own fields, so it can always be rebuilt.
+model KeyDate {
+  id          String           @id @default(uuid())
+  workspaceId String           @map("workspace_id")
+  recordId    String           @map("record_id")
+  /// Which of the record's date fields this is, such as `registrationExpiresOn`.
+  fieldKey    String           @map("field_key")
+  precision   KeyDatePrecision
+  /// The exact day, or the first of the month for a month-only date; null when missing.
+  date        DateTime?        @db.Date
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  record    Record    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@unique([recordId, fieldKey])
+  @@index([workspaceId, date])
+  @@map("key_date")
 }
