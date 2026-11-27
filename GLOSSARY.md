@@ -147,12 +147,32 @@ The state of a key date the user doesn't know yet, surfaced gently until it is f
 _Avoid_: Unknown date, empty date
 
 **Attention list**:
-What needs the user's notice, shown first on the Overview: key dates coming up or just passed, and dates missing. Items stay on it until handled.
+What needs the user's notice, shown first on the Overview: key dates coming up or just passed, dates missing, and every reminder that has come. A reminder stays on it until it is handled, whatever happened to its email.
 _Avoid_: Notifications, to-do list
 
 **Reminder**:
-A notice attached to a key date (an Event's start counts as a key date). Reminders are not records of their own.
+A notice that a key date is coming, sent when one of the date's reminder rules says (an Event's start counts as a key date). Reminders are not records of their own.
 _Avoid_: Alert, notification (the delivery, not the reminder)
+
+**Reminder rule**:
+How long before a key date a reminder comes, such as "30 days before". Every Type has default rules, which a new record starts with and the user can change.
+_Avoid_: Alert setting, notification rule
+
+**Due notice**:
+One reminder waiting for its day: a key date, one of its reminder rules and the day that rule gives. Each is delivered exactly once, unless a later one for the same date has already gone out or the date has passed.
+_Avoid_: Scheduled notification, job, alarm
+
+**Urgent reminder**:
+A reminder too close to its key date to wait for the next digest, so Omniva notifies the user directly; less urgent reminders go into the digest.
+_Avoid_: Priority, critical alert
+
+**Handled**:
+A reminder the user has dealt with: its key date leaves the attention list and nothing more is sent about that date. A new date starts reminding afresh.
+_Avoid_: Done (a Task's state), dismissed, read
+
+**Snoozed**:
+A reminder the user has put off until a day they choose. Until then its key date is off the attention list and its reminders wait.
+_Avoid_: Postponed, muted, hidden
 
 **Digest**:
 The periodic summary that gathers what is coming up, decisions to make and items to sort.
